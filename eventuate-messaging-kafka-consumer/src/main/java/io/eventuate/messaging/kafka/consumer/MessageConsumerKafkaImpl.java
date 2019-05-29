@@ -1,12 +1,11 @@
 package io.eventuate.messaging.kafka.consumer;
 
-import io.eventuate.common.messaging.CommonMessageConsumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
+import io.eventuate.messaging.partition.management.CommonMessageConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +22,14 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
   private String bootstrapServers;
   private List<EventuateKafkaConsumer> consumers = new ArrayList<>();
-  public MessageConsumerKafkaImpl(String bootstrapServers) {
+  private EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties;
+
+  public MessageConsumerKafkaImpl(String bootstrapServers,
+                                  EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties) {
     this.bootstrapServers = bootstrapServers;
+    this.eventuateKafkaConsumerConfigurationProperties = eventuateKafkaConsumerConfigurationProperties;
   }
 
-  @Autowired
-  private EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties;
 
   public KafkaSubscription subscribe(String subscriberId, Set<String> channels, KafkaMessageHandler handler) {
 

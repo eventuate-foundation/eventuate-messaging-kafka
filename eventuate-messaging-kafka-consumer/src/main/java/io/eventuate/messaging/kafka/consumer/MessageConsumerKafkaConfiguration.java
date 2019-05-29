@@ -9,11 +9,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({/*TramConsumerCommonConfiguration.class, */EventuateKafkaPropertiesConfiguration.class})
+@Import({EventuateKafkaPropertiesConfiguration.class})
 @EnableConfigurationProperties(EventuateKafkaConsumerConfigurationProperties.class)
-public class TramConsumerKafkaConfiguration {
+public class MessageConsumerKafkaConfiguration {
   @Bean
-  public MessageConsumerKafkaImpl messageConsumer(EventuateKafkaConfigurationProperties props) {
-    return new MessageConsumerKafkaImpl(props.getBootstrapServers());
+  public MessageConsumerKafkaImpl messageConsumerKafka(EventuateKafkaConfigurationProperties props,
+                                                       EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties) {
+    return new MessageConsumerKafkaImpl(props.getBootstrapServers(), eventuateKafkaConsumerConfigurationProperties);
   }
 }
