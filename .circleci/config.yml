@@ -1,0 +1,30 @@
+version: 2
+jobs:
+  build:
+    machine: true
+    working_directory: ~/eventuate-messaging-kafka
+    steps:
+      - checkout
+      - restore_cache:
+          key: eventuate-messaging-kafka-{{ checksum "build.gradle" }}
+      - run: TERM=dumb ./gradlew testClasses
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: eventuate-messaging-kafka-{{ checksum "build.gradle" }}
+      - run: TERM=dumb ./build-and-test-all.sh
+      - run:
+          name: Publish artifacts
+          command: |
+            TERM=dumb ./deploy-artifacts.sh
+          when: on_success
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
