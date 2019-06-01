@@ -1,0 +1,10 @@
+apply plugin: PublicModulePlugin
+
+dependencies {
+    compile project (":eventuate-messaging-kafka-basic-consumer")
+    compile "io.eventuate.messaging.partition.management:eventuate-messaging-partition-management:$eventuateMessagingPartitionManagementVersion"
+
+    testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
+}
+
+

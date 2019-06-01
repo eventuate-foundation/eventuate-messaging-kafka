@@ -1,0 +1,5 @@
+include 'eventuate-messaging-kafka-basic-consumer'
+include 'eventuate-messaging-kafka-common'
+include 'eventuate-messaging-kafka-consumer'
+include 'eventuate-messaging-kafka-producer'
+include 'eventuate-messaging-kafka-integration-test'
