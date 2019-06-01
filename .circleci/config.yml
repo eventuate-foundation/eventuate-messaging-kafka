@@ -6,12 +6,12 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: eventuate-messaging-kafka-{{ checksum "build.gradle" }}
+          key: eventuate-messaging-kafka-{{ checksum "gradle.properties" }}
       - run: TERM=dumb ./gradlew testClasses
       - save_cache:
           paths:
             - ~/.gradle
-          key: eventuate-messaging-kafka-{{ checksum "build.gradle" }}
+          key: eventuate-messaging-kafka-{{ checksum "gradle.properties" }}
       - run: TERM=dumb ./build-and-test-all.sh
       - run:
           name: Publish artifacts
