@@ -3,7 +3,7 @@ package io.eventuate.messaging.kafka.consumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
-import io.eventuate.messaging.partition.management.CommonMessageConsumer;
+import io.eventuate.messaging.partitionmanagement.CommonMessageConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
