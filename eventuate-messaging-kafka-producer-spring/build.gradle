@@ -1,0 +1,8 @@
+apply plugin: PrivateModulePlugin
+
+dependencies {
+    compile project (":eventuate-messaging-kafka-producer")
+    compile "org.springframework.boot:spring-boot-starter:$springBootVersion"
+
+    testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+}
