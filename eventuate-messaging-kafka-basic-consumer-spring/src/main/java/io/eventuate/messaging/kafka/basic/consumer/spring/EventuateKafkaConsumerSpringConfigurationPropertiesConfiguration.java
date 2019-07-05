@@ -1,0 +1,14 @@
+package io.eventuate.messaging.kafka.basic.consumer.spring;
+
+import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+
+@EnableConfigurationProperties(EventuateKafkaConsumerSpringConfigurationProperties.class)
+public class EventuateKafkaConsumerSpringConfigurationPropertiesConfiguration {
+
+  @Bean
+  public EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties(EventuateKafkaConsumerSpringConfigurationProperties eventuateKafkaConsumerSpringConfigurationProperties) {
+    return new EventuateKafkaConsumerConfigurationProperties(eventuateKafkaConsumerSpringConfigurationProperties.getProperties());
+  }
+}

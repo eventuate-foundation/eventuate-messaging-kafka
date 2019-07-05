@@ -1,0 +1,7 @@
+apply plugin: PrivateModulePlugin
+
+dependencies {
+    compile project (":eventuate-messaging-kafka-common")
+
+    compile "org.springframework.boot:spring-boot-starter:$springBootVersion"
+}
