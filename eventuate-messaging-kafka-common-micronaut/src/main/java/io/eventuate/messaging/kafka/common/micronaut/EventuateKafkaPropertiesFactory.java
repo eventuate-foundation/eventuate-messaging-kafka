@@ -7,7 +7,6 @@ import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.annotation.Value;
 
 @Factory
-//@Requires(property = "micronaut.eventuate.kafka.properties.factory", value = "true")
 public class EventuateKafkaPropertiesFactory {
 
   @Bean

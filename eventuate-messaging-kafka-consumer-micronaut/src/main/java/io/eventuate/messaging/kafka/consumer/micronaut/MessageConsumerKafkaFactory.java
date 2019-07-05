@@ -4,11 +4,9 @@ import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigu
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
 import io.eventuate.messaging.kafka.consumer.MessageConsumerKafkaImpl;
 import io.micronaut.context.annotation.Factory;
-import io.micronaut.context.annotation.Requires;
 
 import javax.inject.Singleton;
 
-//@Requires(property = "micronaut.eventuate.message.consumer.kafka.factory", value = "true")
 @Factory
 public class MessageConsumerKafkaFactory {
   @Singleton
