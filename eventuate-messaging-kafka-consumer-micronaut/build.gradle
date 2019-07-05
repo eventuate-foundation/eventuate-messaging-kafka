@@ -17,6 +17,8 @@ dependencyManagement {
 
 dependencies {
     compile project (":eventuate-messaging-kafka-consumer")
+    compile project (":eventuate-messaging-kafka-common-micronaut")
+    compile project (":eventuate-messaging-kafka-basic-consumer-micronaut")
 
     annotationProcessor "io.micronaut:micronaut-inject-java"
     annotationProcessor "io.micronaut:micronaut-validation"
