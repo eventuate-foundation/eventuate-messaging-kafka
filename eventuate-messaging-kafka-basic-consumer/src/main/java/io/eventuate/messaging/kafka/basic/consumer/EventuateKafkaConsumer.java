@@ -9,10 +9,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -144,7 +141,11 @@ public class EventuateKafkaConsumer {
 
       int backlog = processor.backlog();
 
-      BackPressureActions actions = backPressureManager.update(records, backlog);
+      Set<TopicPartition> topicPartitions = new HashSet<>();
+      for (ConsumerRecord<String, String> record : records) {
+        topicPartitions.add(new TopicPartition(record.topic(), record.partition()));
+      }
+      BackPressureActions actions = backPressureManager.update(topicPartitions, backlog);
 
       if (!actions.pause.isEmpty()) {
         logger.info("Subscriber {} pausing {} due to backlog {} > {}", subscriberId, actions.pause, backlog, backPressureConfig.getHigh());

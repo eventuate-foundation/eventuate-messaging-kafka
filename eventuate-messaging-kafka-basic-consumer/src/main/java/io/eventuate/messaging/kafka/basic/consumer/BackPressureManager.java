@@ -1,7 +1,5 @@
 package io.eventuate.messaging.kafka.basic.consumer;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
 
 import java.util.HashSet;
@@ -18,11 +16,8 @@ public class BackPressureManager {
     this.backPressureConfig = backPressureConfig;
   }
 
-  public BackPressureActions update(ConsumerRecords<String, String> records, int backlog) {
-
-    for (ConsumerRecord<String, String> record : records) {
-      allTopicPartitions.add(new TopicPartition(record.topic(), record.partition()));
-    }
+  public BackPressureActions update(Set<TopicPartition> topicPartitions, int backlog) {
+    allTopicPartitions.addAll(topicPartitions);
     BackPressureManagerStateAndActions stateAndActions = state.update(allTopicPartitions, backlog, backPressureConfig);
     this.state = stateAndActions.state;
     return stateAndActions.actions;

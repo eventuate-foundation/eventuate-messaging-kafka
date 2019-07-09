@@ -10,7 +10,7 @@ public class BackPressureManagerPausedState implements BackPressureManagerState 
   private Set<TopicPartition> suspendedPartitions;
 
   public BackPressureManagerPausedState(Set<TopicPartition> pausedTopic) {
-    this.suspendedPartitions = pausedTopic;
+    this.suspendedPartitions = new HashSet<>(pausedTopic);
   }
 
   public static BackPressureManagerStateAndActions transitionTo(Set<TopicPartition> allTopicPartitions) {
@@ -25,6 +25,7 @@ public class BackPressureManagerPausedState implements BackPressureManagerState 
     } else {
       Set<TopicPartition> toSuspend = new HashSet<>(allTopicPartitions);
       toSuspend.removeAll(suspendedPartitions);
+      suspendedPartitions.addAll(toSuspend);
       return new BackPressureManagerStateAndActions(BackPressureActions.pause(toSuspend), this);
     }
   }
