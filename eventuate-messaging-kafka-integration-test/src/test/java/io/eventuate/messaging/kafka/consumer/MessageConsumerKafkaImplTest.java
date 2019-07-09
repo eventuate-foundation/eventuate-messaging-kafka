@@ -1,9 +1,16 @@
-package io.eventuate.messaging.kafka.basic.consumer;
+package io.eventuate.messaging.kafka.consumer;
 
+import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumer;
+import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
+import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
+import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerState;
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
 import io.eventuate.util.test.async.Eventually;
+import org.apache.commons.lang.math.IntRange;
+import org.assertj.core.util.Streams;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,38 +19,40 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = EventuateKafkaBasicConsumerTest.EventuateKafkaConsumerTestConfiguration.class)
-public class EventuateKafkaBasicConsumerTest {
+@SpringBootTest(classes = MessageConsumerKafkaImplTest.Config.class,
+        properties = "eventuate.local.kafka.consumer.backPressure.high=3")
+public class MessageConsumerKafkaImplTest {
 
   @Configuration
   @EnableAutoConfiguration
   @EnableConfigurationProperties({EventuateKafkaConsumerConfigurationProperties.class, EventuateKafkaProducerConfigurationProperties.class})
-  public static class EventuateKafkaConsumerTestConfiguration {
-
-    @Bean
-    public EventuateKafkaConfigurationProperties eventuateKafkaConfigurationProperties() {
-      return new EventuateKafkaConfigurationProperties();
-    }
+  @Import(MessageConsumerKafkaConfiguration.class)
+  public static class Config {
 
     @Bean
     public EventuateKafkaProducer producer(EventuateKafkaConfigurationProperties kafkaProperties, EventuateKafkaProducerConfigurationProperties producerProperties) {
       return new EventuateKafkaProducer(kafkaProperties.getBootstrapServers(), producerProperties);
     }
 
+
   }
+  private KafkaMessageHandler handler;
 
   @Autowired
   private EventuateKafkaConfigurationProperties kafkaProperties;
@@ -54,20 +63,27 @@ public class EventuateKafkaBasicConsumerTest {
   @Autowired
   private EventuateKafkaProducer producer;
 
+  @Autowired
+  private MessageConsumerKafkaImpl consumer;
+
+
   @Test
-  public void shouldStopWhenHandlerThrowsException() {
+  public void shouldConsumeMessages() {
     String subscriberId = "subscriber-" + System.currentTimeMillis();
     String topic = "topic-" + System.currentTimeMillis();
 
-    EventuateKafkaConsumerMessageHandler handler = makeExceptionThrowingHandler();
-
-    EventuateKafkaConsumer consumer = makeConsumer(subscriberId, topic, handler);
-
     sendMessages(topic);
 
-    assertConsumerStopped(consumer);
+    handler = mock(KafkaMessageHandler.class);
 
-    assertHandlerInvokedAtLeastOnce(handler);
+    KafkaSubscription subscription = consumer.subscribe(subscriberId, Collections.singleton(topic), handler);
+
+    Eventually.eventually(() -> {
+      verify(handler, atLeastOnce()).accept(any());
+    });
+
+    subscription.close();
+
   }
 
   private EventuateKafkaConsumer makeConsumer(String subscriberId, String topic, EventuateKafkaConsumerMessageHandler handler) {
@@ -78,28 +94,39 @@ public class EventuateKafkaBasicConsumerTest {
   }
 
   private void sendMessages(String topic) {
-    producer.send(topic, "1", "a");
-    producer.send(topic, "1", "b");
+    producer.send(topic, null, "a");
+    producer.send(topic, null, "b");
   }
 
-  private void assertHandlerInvokedAtLeastOnce(EventuateKafkaConsumerMessageHandler handler) {
-    verify(handler, atLeast(1)).apply(any(), any());
-  }
+  @Test
+  public void shouldConsumeMessagesWithBackPressure() {
+    String subscriberId = "subscriber-" + System.currentTimeMillis();
+    String topic = "topic-" + System.currentTimeMillis();
+    LinkedBlockingQueue<KafkaMessage> messages = new LinkedBlockingQueue<>();
 
-  private EventuateKafkaConsumerMessageHandler makeExceptionThrowingHandler() {
-    EventuateKafkaConsumerMessageHandler handler = mock(EventuateKafkaConsumerMessageHandler.class);
+    for (int i = 0 ; i < 100; i++)
+      sendMessages(topic);
 
-    doAnswer(invocation -> {
-      CompletableFuture.runAsync(() -> ((BiConsumer<Void, Throwable>)invocation.getArguments()[1]).accept(null, new RuntimeException("Test is simulating failure")));
-      return null;
-    }).when(handler).apply(any(), any());
-    return handler;
-  }
+    handler = new KafkaMessageHandler() {
+      @Override
+      public void accept(KafkaMessage kafkaMessage) {
+        try {
+          TimeUnit.MILLISECONDS.sleep(20);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+        messages.add(kafkaMessage);
+      }
+    };
 
-  private void assertConsumerStopped(EventuateKafkaConsumer consumer) {
+    KafkaSubscription subscription = consumer.subscribe(subscriberId, Collections.singleton(topic), handler);
+
     Eventually.eventually(() -> {
-      assertEquals(EventuateKafkaConsumerState.MESSAGE_HANDLING_FAILED, consumer.getState());
+      assertEquals(200, messages.size());
     });
+
+    subscription.close();
+
   }
 
 }
