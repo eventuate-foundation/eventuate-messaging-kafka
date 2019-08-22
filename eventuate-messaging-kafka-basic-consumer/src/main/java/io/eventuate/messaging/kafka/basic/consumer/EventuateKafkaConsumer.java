@@ -9,6 +9,8 @@ import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +30,9 @@ public class EventuateKafkaConsumer {
   private AtomicBoolean stopFlag = new AtomicBoolean(false);
   private Properties consumerProperties;
   private volatile EventuateKafkaConsumerState state = EventuateKafkaConsumerState.CREATED;
+  private KafkaConsumer<String, String> consumer;
+
+  volatile boolean closeConsumerOnStop = true;
 
   public EventuateKafkaConsumer(String subscriberId,
                                 EventuateKafkaConsumerMessageHandler handler,
@@ -67,7 +72,7 @@ public class EventuateKafkaConsumer {
   public void start() {
     try {
 
-      KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties);
+      consumer = new KafkaConsumer<>(consumerProperties);
 
       KafkaMessageProcessor processor = new KafkaMessageProcessor(subscriberId, handler);
 
@@ -86,7 +91,7 @@ public class EventuateKafkaConsumer {
 
         try {
           while (!stopFlag.get()) {
-            ConsumerRecords<String, String> records = consumer.poll(100);
+            ConsumerRecords<String, String> records = consumer.poll(Duration.of(100, ChronoUnit.MILLIS));
             if (!records.isEmpty())
               logger.debug("Got {} {} records", subscriberId, records.count());
 
@@ -113,13 +118,19 @@ public class EventuateKafkaConsumer {
 
           state = EventuateKafkaConsumerState.STOPPED;
 
+          if (closeConsumerOnStop) {
+            consumer.close();
+          }
+
         } catch (KafkaMessageProcessorFailedException e) {
           // We are done
           logger.trace("Terminating since KafkaMessageProcessorFailedException");
           state = EventuateKafkaConsumerState.MESSAGE_HANDLING_FAILED;
+          consumer.close(Duration.of(200, ChronoUnit.MILLIS));
         } catch (Throwable e) {
           logger.error("Got exception: ", e);
           state = EventuateKafkaConsumerState.FAILED;
+          consumer.close(Duration.of(200, ChronoUnit.MILLIS));
           throw new RuntimeException(e);
         }
         logger.trace("Stopped in state {}", state);
@@ -137,6 +148,7 @@ public class EventuateKafkaConsumer {
 
   public void stop() {
     stopFlag.set(true);
+//    consumer.close(Duration.of(200, ChronoUnit.MILLIS)); //can produce java.util.ConcurrentModificationException: KafkaConsumer is not safe for multi-threaded access
   }
 
   public EventuateKafkaConsumerState getState() {
