@@ -59,6 +59,7 @@ public class EventuateKafkaConsumerTest {
     createConsumer((record, callback) -> {
       callback.accept(null, new RuntimeException("Something happend"));
       recordHandled = true;
+      return null;
     });
 
     sendMessage();
@@ -83,7 +84,10 @@ public class EventuateKafkaConsumerTest {
 
   @Test
   public void testConsumerSwitchOnHanging() throws InterruptedException {
-    createConsumer((record, callback) -> recordHandled = true);
+    createConsumer((record, callback) -> {
+      recordHandled = true;
+      return null;
+    });
     sendMessage();
     assertRecordHandled();
     assertMessageReceivedByNewConsumer();
@@ -91,7 +95,10 @@ public class EventuateKafkaConsumerTest {
 
   @Test
   public void testConsumerStop() throws InterruptedException {
-    EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer((record, callback) -> recordHandled = true);
+    EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer((record, callback) -> {
+      recordHandled = true;
+      return null;
+    });
     sendMessage();
     assertRecordHandled();
     eventuateKafkaConsumer.stop();
@@ -101,7 +108,10 @@ public class EventuateKafkaConsumerTest {
   @Test
   public void testNotClosedConsumerOnStop() throws InterruptedException {
     eventuateKafkaConsumerConfigurationProperties.getProperties().put("max.poll.interval.ms", "1000");
-    EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer((record, callback) -> recordHandled = true);
+    EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer((record, callback) -> {
+      recordHandled = true;
+      return null;
+    });
     sendMessage();
     assertRecordHandled();
     eventuateKafkaConsumer.closeConsumerOnStop = false;
@@ -113,6 +123,7 @@ public class EventuateKafkaConsumerTest {
     createConsumer((record, callback) -> {
       queue.add(record.value());
       callback.accept(null, null);
+      return null;
     });
 
     String message = queue.poll(30, TimeUnit.SECONDS);

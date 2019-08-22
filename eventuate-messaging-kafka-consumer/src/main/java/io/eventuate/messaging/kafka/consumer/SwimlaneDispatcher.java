@@ -19,6 +19,8 @@ public class SwimlaneDispatcher {
   private final LinkedBlockingQueue<QueuedMessage> queue = new LinkedBlockingQueue<>();
   private AtomicBoolean running = new AtomicBoolean(false);
 
+  private SwimlaneDispatcherBacklog consumerStatus = new SwimlaneDispatcherBacklog(queue);
+
   public SwimlaneDispatcher(String subscriberId, Integer swimlane, Executor executor) {
     this.subscriberId = subscriberId;
     this.swimlane = swimlane;
@@ -29,7 +31,7 @@ public class SwimlaneDispatcher {
     return running.get();
   }
 
-  public void dispatch(KafkaMessage message, Consumer<KafkaMessage> messageConsumer) {
+  public SwimlaneDispatcherBacklog dispatch(KafkaMessage message, Consumer<KafkaMessage> messageConsumer) {
     synchronized (queue) {
       QueuedMessage queuedMessage = new QueuedMessage(message, messageConsumer);
       queue.add(queuedMessage);
@@ -40,6 +42,7 @@ public class SwimlaneDispatcher {
       } else
         logger.trace("Running - Not attempting to process newly queued message: {} {}", subscriberId, swimlane);
     }
+    return consumerStatus;
   }
 
   private void processNextQueuedMessage() {
