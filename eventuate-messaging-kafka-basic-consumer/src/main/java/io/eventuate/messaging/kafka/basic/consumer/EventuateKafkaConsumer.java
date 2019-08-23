@@ -145,7 +145,11 @@ public class EventuateKafkaConsumer {
       if (!records.isEmpty())
         logger.debug("Processed {} {} records", subscriberId, records.count());
 
-      maybeCommitOffsets(consumer, processor);
+      try {
+        maybeCommitOffsets(consumer, processor);
+      } catch (Exception e) {
+        logger.error("Cannot commit offsets", e);
+      }
 
       if (!records.isEmpty())
         logger.debug("To commit {} {}", subscriberId, processor.getPending());
@@ -174,7 +178,8 @@ public class EventuateKafkaConsumer {
 
   public void stop() {
     stopFlag.set(true);
-//    consumer.close(Duration.of(200, ChronoUnit.MILLIS)); //can produce java.util.ConcurrentModificationException: KafkaConsumer is not safe for multi-threaded access
+//    can't call consumer.close(), it is not thread safe,
+//    it can produce java.util.ConcurrentModificationException: KafkaConsumer is not safe for multi-threaded access
   }
 
   public EventuateKafkaConsumerState getState() {
