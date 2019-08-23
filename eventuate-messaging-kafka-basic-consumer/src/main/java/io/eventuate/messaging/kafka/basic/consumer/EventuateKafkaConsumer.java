@@ -29,7 +29,6 @@ public class EventuateKafkaConsumer {
   private AtomicBoolean stopFlag = new AtomicBoolean(false);
   private Properties consumerProperties;
   private volatile EventuateKafkaConsumerState state = EventuateKafkaConsumerState.CREATED;
-  private KafkaConsumer<String, String> consumer;
 
   volatile boolean closeConsumerOnStop = true;
 
@@ -72,8 +71,7 @@ public class EventuateKafkaConsumer {
 
   public void start() {
     try {
-
-      consumer = new KafkaConsumer<>(consumerProperties);
+      KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties);
 
       KafkaMessageProcessor processor = new KafkaMessageProcessor(subscriberId, handler);
 
