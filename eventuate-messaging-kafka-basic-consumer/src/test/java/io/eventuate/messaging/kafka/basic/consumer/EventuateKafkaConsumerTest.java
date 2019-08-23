@@ -120,7 +120,7 @@ public class EventuateKafkaConsumerTest {
   }
 
   private void assertRecordHandled() {
-    Eventually.eventually(() -> verify(mockedHandler));
+    Eventually.eventually(() -> verify(mockedHandler).apply(any(), any()));
   }
 
   private void sendMessage() {
