@@ -11,15 +11,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = EventuateKafkaConsumerTest.Config.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class EventuateKafkaConsumerTest {
 
   @EnableConfigurationProperties({EventuateKafkaConsumerConfigurationProperties.class,
@@ -38,7 +43,7 @@ public class EventuateKafkaConsumerTest {
 
   private EventuateKafkaProducer eventuateKafkaProducer;
 
-  private volatile boolean recordHandled = false;
+  private EventuateKafkaConsumerMessageHandler mockedHandler;
 
   private String subscriberId = UUID.randomUUID().toString();
   private String topic = UUID.randomUUID().toString();
@@ -51,17 +56,16 @@ public class EventuateKafkaConsumerTest {
 
     subscriberId = UUID.randomUUID().toString();
     topic = UUID.randomUUID().toString();
-    recordHandled = false;
+    mockedHandler = mock(EventuateKafkaConsumerMessageHandler.class);
   }
 
   @Test
   public void testHandledConsumerException() throws InterruptedException {
-    createConsumer((record, callback) -> {
-      callback.accept(null, new RuntimeException("Something happend"));
-      recordHandled = true;
+    when(mockedHandler.apply(any(), any())).then(invocation -> {
+      ((BiConsumer<Void, Throwable>)invocation.getArguments()[1]).accept(null, new RuntimeException("Something happend"));
       return null;
     });
-
+    createConsumer(mockedHandler);
     sendMessage();
     assertRecordHandled();
     assertMessageReceivedByNewConsumer();
@@ -69,14 +73,8 @@ public class EventuateKafkaConsumerTest {
 
   @Test
   public void testUnhandledConsumerException() throws InterruptedException {
-    createConsumer((record, callback) -> {
-      try {
-        throw new RuntimeException("Something happened!");
-      } finally {
-        recordHandled = true;
-      }
-    });
-
+    when(mockedHandler.apply(any(), any())).thenThrow(new RuntimeException("Something happened!"));
+    createConsumer(mockedHandler);
     sendMessage();
     assertRecordHandled();
     assertMessageReceivedByNewConsumer();
@@ -84,10 +82,7 @@ public class EventuateKafkaConsumerTest {
 
   @Test
   public void testConsumerSwitchOnHanging() throws InterruptedException {
-    createConsumer((record, callback) -> {
-      recordHandled = true;
-      return null;
-    });
+    createConsumer(mockedHandler);
     sendMessage();
     assertRecordHandled();
     assertMessageReceivedByNewConsumer();
@@ -95,10 +90,7 @@ public class EventuateKafkaConsumerTest {
 
   @Test
   public void testConsumerStop() throws InterruptedException {
-    EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer((record, callback) -> {
-      recordHandled = true;
-      return null;
-    });
+    EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer(mockedHandler);
     sendMessage();
     assertRecordHandled();
     eventuateKafkaConsumer.stop();
@@ -108,10 +100,7 @@ public class EventuateKafkaConsumerTest {
   @Test
   public void testNotClosedConsumerOnStop() throws InterruptedException {
     eventuateKafkaConsumerConfigurationProperties.getProperties().put("max.poll.interval.ms", "1000");
-    EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer((record, callback) -> {
-      recordHandled = true;
-      return null;
-    });
+    EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer(mockedHandler);
     sendMessage();
     assertRecordHandled();
     eventuateKafkaConsumer.closeConsumerOnStop = false;
@@ -131,7 +120,7 @@ public class EventuateKafkaConsumerTest {
   }
 
   private void assertRecordHandled() {
-    Eventually.eventually(() -> Assert.assertTrue(recordHandled));
+    Eventually.eventually(() -> verify(mockedHandler));
   }
 
   private void sendMessage() {
