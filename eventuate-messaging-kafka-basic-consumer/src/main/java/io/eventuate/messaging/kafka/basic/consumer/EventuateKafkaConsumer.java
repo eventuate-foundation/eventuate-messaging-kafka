@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class EventuateKafkaConsumer {
 
-
   private static Logger logger = LoggerFactory.getLogger(EventuateKafkaConsumer.class);
   private final String subscriberId;
   private final EventuateKafkaConsumerMessageHandler handler;
@@ -31,6 +30,10 @@ public class EventuateKafkaConsumer {
   private volatile EventuateKafkaConsumerState state = EventuateKafkaConsumerState.CREATED;
 
   volatile boolean closeConsumerOnStop = true;
+
+  Optional<Runnable> onTryCommitCallback = Optional.empty();
+  Optional<Runnable> onCommitedCallback = Optional.empty();
+  Optional<Runnable> onCommitFailedCallback = Optional.empty();
 
   public EventuateKafkaConsumer(String subscriberId,
                                 EventuateKafkaConsumerMessageHandler handler,
@@ -144,9 +147,14 @@ public class EventuateKafkaConsumer {
         logger.debug("Processed {} {} records", subscriberId, records.count());
 
       try {
+        if (!processor.offsetsToCommit().isEmpty()) {
+          onTryCommitCallback.ifPresent(Runnable::run);
+        }
         maybeCommitOffsets(consumer, processor);
+        onCommitedCallback.ifPresent(Runnable::run);
       } catch (Exception e) {
         logger.error("Cannot commit offsets", e);
+        onCommitFailedCallback.ifPresent(Runnable::run);
       }
 
       if (!records.isEmpty())
