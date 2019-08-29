@@ -17,9 +17,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -38,12 +36,6 @@ public class EventuateKafkaConsumerTest {
 
   @Value("${eventuatelocal.kafka.bootstrap.servers}")
   private String bootstrapServers;
-
-  @Value("${start.kafka.command}")
-  private String startKafkaCommand;
-
-  @Value("${stop.kafka.command}")
-  private String stopKafkaCommand;
 
   @Autowired
   private EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties;
@@ -129,44 +121,64 @@ public class EventuateKafkaConsumerTest {
 
     EventuateKafkaConsumer eventuateKafkaConsumer = createNoOpConsumer();
 
-    stopKafkaWhenConsumerTriesToCommitOffset(eventuateKafkaConsumer);
-
     Runnable onCommitOffsetsFailedCallback = Mockito.mock(Runnable.class);
-    eventuateKafkaConsumer.onCommitFailedCallback = Optional.of(onCommitOffsetsFailedCallback);
+
+    ConsumerCallbacks consumerCallbacks = new ConsumerCallbacks() {
+      @Override
+      public void onTryCommitCallback() {
+        if (!isItCalledFromPollingLoop()) {
+          return;
+        }
+
+        try {
+          stopKafka();
+          Thread.sleep(3000);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      @Override
+      public void onCommitedCallback() {
+        if (!isItCalledFromPollingLoop()) {
+          return;
+        }
+
+        eventuateKafkaConsumer.stop();
+        sendMessage("test-value-2");
+      }
+
+      @Override
+      public void onCommitFailedCallback() {
+        onCommitOffsetsFailedCallback.run();
+      }
+
+      private boolean isItCalledFromPollingLoop() {
+        return Arrays
+                .stream(Thread.currentThread().getStackTrace())
+                .anyMatch(stackTraceElement -> stackTraceElement.getMethodName().equals("runPollingLoop"));
+      }
+    };
+
+    eventuateKafkaConsumer.consumerCallbacks = Optional.of(consumerCallbacks);
+
     sendMessage();
 
-
-    Eventually.eventually(() -> {
+    Eventually.eventually(60, 500, TimeUnit.MILLISECONDS, () -> {
       Mockito.verify(onCommitOffsetsFailedCallback).run();
     });
 
     startKafka();
 
-    eventuateKafkaConsumer.onCommitedCallback = Optional.of(() -> {
-        eventuateKafkaConsumer.stop();
-        sendMessage("test-value-2");
-    });
-
     assertMessageReceivedByNewConsumer("test-value-2");
   }
 
-  private void stopKafkaWhenConsumerTriesToCommitOffset(EventuateKafkaConsumer eventuateKafkaConsumer) {
-    eventuateKafkaConsumer.onTryCommitCallback = Optional.of(() -> {
-      try {
-        stopKafka();
-        Thread.sleep(3000);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    });
-  }
-
   private void stopKafka() throws IOException {
-    Runtime.getRuntime().exec(stopKafkaCommand);
+    Runtime.getRuntime().exec("docker-compose stop kafka");
   }
 
   private void startKafka() throws IOException {
-    Runtime.getRuntime().exec(startKafkaCommand);
+    Runtime.getRuntime().exec("docker-compose start kafka");
   }
 
   private void assertMessageReceivedByNewConsumer() throws InterruptedException {

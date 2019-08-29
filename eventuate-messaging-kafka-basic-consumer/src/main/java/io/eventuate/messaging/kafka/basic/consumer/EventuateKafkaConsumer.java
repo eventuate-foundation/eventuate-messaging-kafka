@@ -31,9 +31,7 @@ public class EventuateKafkaConsumer {
 
   volatile boolean closeConsumerOnStop = true;
 
-  Optional<Runnable> onTryCommitCallback = Optional.empty();
-  Optional<Runnable> onCommitedCallback = Optional.empty();
-  Optional<Runnable> onCommitFailedCallback = Optional.empty();
+  Optional<ConsumerCallbacks> consumerCallbacks = Optional.empty();
 
   public EventuateKafkaConsumer(String subscriberId,
                                 EventuateKafkaConsumerMessageHandler handler,
@@ -65,10 +63,12 @@ public class EventuateKafkaConsumer {
   private void maybeCommitOffsets(KafkaConsumer<String, String> consumer, KafkaMessageProcessor processor) {
     Map<TopicPartition, OffsetAndMetadata> offsetsToCommit = processor.offsetsToCommit();
     if (!offsetsToCommit.isEmpty()) {
+      consumerCallbacks.ifPresent(ConsumerCallbacks::onTryCommitCallback);
       logger.debug("Committing offsets {} {}", subscriberId, offsetsToCommit);
       consumer.commitSync(offsetsToCommit);
       logger.debug("Committed offsets {}", subscriberId);
       processor.noteOffsetsCommitted(offsetsToCommit);
+      consumerCallbacks.ifPresent(ConsumerCallbacks::onCommitedCallback);
     }
   }
 
@@ -147,14 +147,10 @@ public class EventuateKafkaConsumer {
         logger.debug("Processed {} {} records", subscriberId, records.count());
 
       try {
-        if (!processor.offsetsToCommit().isEmpty()) {
-          onTryCommitCallback.ifPresent(Runnable::run);
-        }
         maybeCommitOffsets(consumer, processor);
-        onCommitedCallback.ifPresent(Runnable::run);
       } catch (Exception e) {
         logger.error("Cannot commit offsets", e);
-        onCommitFailedCallback.ifPresent(Runnable::run);
+        consumerCallbacks.ifPresent(ConsumerCallbacks::onCommitFailedCallback);
       }
 
       if (!records.isEmpty())
