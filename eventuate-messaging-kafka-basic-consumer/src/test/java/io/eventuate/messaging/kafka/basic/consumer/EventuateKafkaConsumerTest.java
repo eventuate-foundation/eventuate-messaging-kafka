@@ -9,14 +9,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.StreamUtils;
 
-import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +36,8 @@ public class EventuateKafkaConsumerTest {
           EventuateKafkaProducerConfigurationProperties.class})
   public static class Config {
   }
+
+  private Logger logger = LoggerFactory.getLogger(getClass());
 
   @Value("${eventuatelocal.kafka.bootstrap.servers}")
   private String bootstrapServers;
@@ -62,7 +67,7 @@ public class EventuateKafkaConsumerTest {
   }
 
   @After
-  public void after() throws IOException {
+  public void after() throws Exception {
     startKafka();
   }
 
@@ -169,16 +174,42 @@ public class EventuateKafkaConsumerTest {
     });
 
     startKafka();
+    Thread.sleep(3000);
 
     assertMessageReceivedByNewConsumer("test-value-2");
   }
 
-  private void stopKafka() throws IOException {
-    Runtime.getRuntime().exec("docker-compose stop kafka");
+  private void stopKafka() throws Exception {
+    Process p = Runtime.getRuntime().exec("docker-compose stop kafka");
+    try {
+      p.waitFor();
+
+      String output = StreamUtils.copyToString(p.getInputStream(), Charset.defaultCharset());
+      String errors = StreamUtils.copyToString(p.getErrorStream(), Charset.defaultCharset());
+
+      logger.info("stop kafka output " + output);
+      logger.error("stop kafka errors " + errors);
+
+    } finally {
+      p.destroy();
+    }
   }
 
-  private void startKafka() throws IOException {
-    Runtime.getRuntime().exec("docker-compose start kafka");
+  private void startKafka() throws Exception {
+    Process p = Runtime.getRuntime().exec("docker-compose start kafka");
+
+    try {
+      p.waitFor();
+
+      String output = StreamUtils.copyToString(p.getInputStream(), Charset.defaultCharset());
+      String errors = StreamUtils.copyToString(p.getErrorStream(), Charset.defaultCharset());
+
+      logger.info("start kafka output " + output);
+      logger.error("start kafka errors " + errors);
+
+    } finally {
+      p.destroy();
+    }
   }
 
   private void assertMessageReceivedByNewConsumer() throws InterruptedException {
