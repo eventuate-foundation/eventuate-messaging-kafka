@@ -9,14 +9,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +40,8 @@ public class EventuateKafkaConsumerTest {
           EventuateKafkaProducerConfigurationProperties.class})
   public static class Config {
   }
+
+  private Logger logger = LoggerFactory.getLogger(getClass());
 
   @Value("${eventuatelocal.kafka.bootstrap.servers}")
   private String bootstrapServers;
@@ -62,8 +71,9 @@ public class EventuateKafkaConsumerTest {
   }
 
   @After
-  public void after() throws IOException {
+  public void after() throws Exception {
     startKafka();
+    waitForKafka();
   }
 
   @Test
@@ -132,7 +142,7 @@ public class EventuateKafkaConsumerTest {
 
         try {
           stopKafka();
-          Thread.sleep(3000);
+          waitForKafkaStop();
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
@@ -169,16 +179,60 @@ public class EventuateKafkaConsumerTest {
     });
 
     startKafka();
+    waitForKafka();
 
     assertMessageReceivedByNewConsumer("test-value-2");
   }
 
-  private void stopKafka() throws IOException {
-    Runtime.getRuntime().exec("docker-compose stop kafka");
+  private void stopKafka() throws Exception {
+    executeOsCommand("docker-compose stop kafka");
   }
 
-  private void startKafka() throws IOException {
-    Runtime.getRuntime().exec("docker-compose start kafka");
+  private void startKafka() throws Exception {
+    executeOsCommand("docker-compose start kafka");
+  }
+
+  private void executeOsCommand(String command) throws Exception {
+    Process p = Runtime.getRuntime().exec(command);
+
+    try {
+      p.waitFor(30, TimeUnit.SECONDS);
+
+      String output = StreamUtils.copyToString(p.getInputStream(), Charset.defaultCharset());
+      String errors = StreamUtils.copyToString(p.getErrorStream(), Charset.defaultCharset());
+
+      logger.info(String.format("%s output: %s", command, output));
+      logger.error(String.format("%s errors: %s", command, errors));
+
+    } finally {
+      p.destroy();
+    }
+  }
+
+  private void waitForKafka() {
+    Eventually.eventually(60, 500, TimeUnit.MILLISECONDS, () -> {
+      try(Socket ignored = new Socket(getKafkaHost(), getKafkaPort())) {}
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+
+  private void waitForKafkaStop() {
+    Eventually.eventually(60, 500, TimeUnit.MILLISECONDS, () -> {
+      try(Socket ignored = new Socket(getKafkaHost(), getKafkaPort())) {
+        throw new IllegalStateException("Kafka was not stopped!");
+      }
+      catch (IOException ignored) {}
+    });
+  }
+
+  private String getKafkaHost() {
+    return bootstrapServers.split(":")[0];
+  }
+
+  private int getKafkaPort() {
+    return Integer.parseInt(bootstrapServers.split(":")[1]);
   }
 
   private void assertMessageReceivedByNewConsumer() throws InterruptedException {
