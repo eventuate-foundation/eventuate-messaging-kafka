@@ -21,12 +21,11 @@ import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.URI;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
 import static org.mockito.Mockito.*;
@@ -56,8 +55,13 @@ public class EventuateKafkaConsumerTest {
 
   private EventuateKafkaConsumerMessageHandler mockedHandler;
 
-  private String subscriberId = UUID.randomUUID().toString();
-  private String topic = UUID.randomUUID().toString();
+  private String subscriberId = uniqueId();
+
+  private String uniqueId() {
+    return UUID.randomUUID().toString();
+  }
+
+  private String topic = uniqueId();
 
   private LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>();
 
@@ -65,8 +69,8 @@ public class EventuateKafkaConsumerTest {
   public void init() {
     eventuateKafkaProducer = new EventuateKafkaProducer(bootstrapServers, eventuateKafkaProducerConfigurationProperties);
 
-    subscriberId = UUID.randomUUID().toString();
-    topic = UUID.randomUUID().toString();
+    subscriberId = uniqueId();
+    topic = uniqueId();
     mockedHandler = mock(EventuateKafkaConsumerMessageHandler.class);
   }
 
@@ -133,6 +137,8 @@ public class EventuateKafkaConsumerTest {
 
     Runnable onCommitOffsetsFailedCallback = Mockito.mock(Runnable.class);
 
+    AtomicBoolean justOnce = new AtomicBoolean(false);
+
     ConsumerCallbacks consumerCallbacks = new ConsumerCallbacks() {
       @Override
       public void onTryCommitCallback() {
@@ -140,12 +146,13 @@ public class EventuateKafkaConsumerTest {
           return;
         }
 
-        try {
-          stopKafka();
-          waitForKafkaStop();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
+        if (justOnce.compareAndSet(false, true))
+          try {
+            stopKafka();
+            waitForKafkaStop();
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
       }
 
       @Override
@@ -211,11 +218,34 @@ public class EventuateKafkaConsumerTest {
 
   private void waitForKafka() {
     Eventually.eventually(60, 500, TimeUnit.MILLISECONDS, () -> {
-      try(Socket ignored = new Socket(getKafkaHost(), getKafkaPort())) {}
+      String host = getKafkaHost();
+      try(Socket ignored = new Socket(host, getKafkaPort())) {}
       catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException("Can't connect to host: " + host, e);
       }
     });
+
+    System.out.println("Connected to kafka port");
+
+    Eventually.eventually(60, 500, TimeUnit.MILLISECONDS, () -> {
+      System.out.println("Trying to subscribe");
+      String x = uniqueId();
+      EventuateKafkaConsumer eventuateKafkaConsumer = new EventuateKafkaConsumer(x,
+              (record, callback) -> {
+          callback.accept(null, null);
+          return null;
+        },
+              Collections.singletonList(x),
+              bootstrapServers,
+              eventuateKafkaConsumerConfigurationProperties);
+
+      eventuateKafkaConsumer.start();
+
+      EventuateKafkaConsumer consumer = eventuateKafkaConsumer;
+      consumer.stop();
+    });
+    System.out.println("Subscribed");
+
   }
 
   private void waitForKafkaStop() {
