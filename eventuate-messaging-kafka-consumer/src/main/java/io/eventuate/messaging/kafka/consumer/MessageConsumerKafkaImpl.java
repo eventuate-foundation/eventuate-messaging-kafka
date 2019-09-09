@@ -35,11 +35,9 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
     SwimlaneBasedDispatcher swimlaneBasedDispatcher = new SwimlaneBasedDispatcher(subscriberId, Executors.newCachedThreadPool());
 
-    EventuateKafkaConsumerMessageHandler kcHandler = (record, callback) -> {
-      swimlaneBasedDispatcher.dispatch(new KafkaMessage(record.value()),
-              record.partition(),
-              message -> handle(message, callback, subscriberId, handler));
-    };
+    EventuateKafkaConsumerMessageHandler kcHandler = (record, callback) -> swimlaneBasedDispatcher.dispatch(new KafkaMessage(record.value()),
+            record.partition(),
+            message -> handle(message, callback, handler));
 
     EventuateKafkaConsumer kc = new EventuateKafkaConsumer(subscriberId,
             kcHandler,
@@ -57,7 +55,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
     });
   }
 
-  public void handle(KafkaMessage message, BiConsumer<Void, Throwable> callback, String subscriberId, KafkaMessageHandler kafkaMessageHandler) {
+  public void handle(KafkaMessage message, BiConsumer<Void, Throwable> callback, KafkaMessageHandler kafkaMessageHandler) {
     try {
       kafkaMessageHandler.accept(message);
       callback.accept(null, null);

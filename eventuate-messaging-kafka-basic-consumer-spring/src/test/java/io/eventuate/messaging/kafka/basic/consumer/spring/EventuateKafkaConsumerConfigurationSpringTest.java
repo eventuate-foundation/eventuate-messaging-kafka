@@ -1,12 +1,13 @@
 package io.eventuate.messaging.kafka.basic.consumer.spring;
 
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = EventuateKafkaConsumerSpringConfigurationPropertiesConfiguration.class)
@@ -18,11 +19,15 @@ public class EventuateKafkaConsumerConfigurationSpringTest {
   @Test
   public void testPropertyParsing() {
 
-    Assert.assertEquals(2, eventuateKafkaConsumerConfigurationProperties.getProperties().size());
+    assertEquals(2, eventuateKafkaConsumerConfigurationProperties.getProperties().size());
 
-    Assert.assertEquals("10000", eventuateKafkaConsumerConfigurationProperties.getProperties().get("session.timeout.ms"));
+    assertEquals("10000", eventuateKafkaConsumerConfigurationProperties.getProperties().get("session.timeout.ms"));
 
-    Assert.assertEquals("org.apache.kafka.common.serialization.StringSerializer",
+    assertEquals("org.apache.kafka.common.serialization.StringSerializer",
             eventuateKafkaConsumerConfigurationProperties.getProperties().get("key.serializer"));
+
+    assertEquals(5, eventuateKafkaConsumerConfigurationProperties.getBackPressure().getLow());
+    assertEquals(100, eventuateKafkaConsumerConfigurationProperties.getBackPressure().getHigh());
+    assertEquals(200, eventuateKafkaConsumerConfigurationProperties.getPollTimeout());
   }
 }

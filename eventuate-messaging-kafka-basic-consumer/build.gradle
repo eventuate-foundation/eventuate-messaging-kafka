@@ -3,3 +3,7 @@ apply plugin: PrivateModulePlugin
 dependencies {
     compile project (':eventuate-messaging-kafka-common')
 }
+
+test {
+    forkEvery 1
+}
