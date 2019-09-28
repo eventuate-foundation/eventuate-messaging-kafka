@@ -6,7 +6,9 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: eventuate-messaging-kafka-{{ checksum "gradle.properties" }}
+          keys:
+            - eventuate-messaging-kafka-{{ checksum "gradle.properties" }}
+            - eventuate-messaging-kafka-
       - run: TERM=dumb ./gradlew testClasses
       - save_cache:
           paths:
