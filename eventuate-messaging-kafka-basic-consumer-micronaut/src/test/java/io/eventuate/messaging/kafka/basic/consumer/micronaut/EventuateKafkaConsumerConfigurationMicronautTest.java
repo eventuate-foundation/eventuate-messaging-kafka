@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
 
+import static org.junit.Assert.assertEquals;
+
 @MicronautTest(propertySources = "application.properties")
 public class EventuateKafkaConsumerConfigurationMicronautTest {
 
@@ -22,5 +24,9 @@ public class EventuateKafkaConsumerConfigurationMicronautTest {
 
     Assert.assertEquals("org.apache.kafka.common.serialization.StringSerializer",
             eventuateKafkaConsumerConfigurationProperties.getProperties().get("key.serializer"));
+
+    assertEquals(5, eventuateKafkaConsumerConfigurationProperties.getBackPressure().getLow());
+    assertEquals(100, eventuateKafkaConsumerConfigurationProperties.getBackPressure().getHigh());
+    assertEquals(200, eventuateKafkaConsumerConfigurationProperties.getPollTimeout());
   }
 }

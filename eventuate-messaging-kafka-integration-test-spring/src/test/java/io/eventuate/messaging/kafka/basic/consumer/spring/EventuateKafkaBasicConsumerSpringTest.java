@@ -4,6 +4,7 @@ import io.eventuate.messaging.kafka.basic.consumer.AbstractEventuateKafkaBasicCo
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
 import io.eventuate.messaging.kafka.common.spring.EventuateKafkaPropertiesConfiguration;
+import io.eventuate.messaging.kafka.consumer.MessageConsumerKafkaImpl;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
 import io.eventuate.messaging.kafka.producer.spring.EventuateKafkaProducerSpringConfigurationPropertiesConfiguration;
@@ -18,7 +19,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = EventuateKafkaBasicConsumerSpringTest.EventuateKafkaConsumerTestConfiguration.class)
+@SpringBootTest(classes = EventuateKafkaBasicConsumerSpringTest.EventuateKafkaConsumerTestConfiguration.class,
+        properties = "eventuate.local.kafka.consumer.backPressure.high=3")
 public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafkaBasicConsumerTest {
 
   @Configuration
@@ -28,8 +30,15 @@ public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafk
           EventuateKafkaPropertiesConfiguration.class})
   public static class EventuateKafkaConsumerTestConfiguration {
     @Bean
-    public EventuateKafkaProducer producer(EventuateKafkaConfigurationProperties kafkaProperties, EventuateKafkaProducerConfigurationProperties producerProperties) {
+    public EventuateKafkaProducer producer(EventuateKafkaConfigurationProperties kafkaProperties,
+                                           EventuateKafkaProducerConfigurationProperties producerProperties) {
       return new EventuateKafkaProducer(kafkaProperties.getBootstrapServers(), producerProperties);
+    }
+
+    @Bean
+    public MessageConsumerKafkaImpl messageConsumerKafka(EventuateKafkaConfigurationProperties props,
+                                                         EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties) {
+      return new MessageConsumerKafkaImpl(props.getBootstrapServers(), eventuateKafkaConsumerConfigurationProperties);
     }
   }
 
@@ -42,10 +51,25 @@ public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafk
   @Autowired
   private EventuateKafkaProducer producer;
 
+  @Autowired
+  private MessageConsumerKafkaImpl consumer;
+
   @Test
   @Override
   public void shouldStopWhenHandlerThrowsException() {
     super.shouldStopWhenHandlerThrowsException();
+  }
+
+  @Test
+  @Override
+  public void shouldConsumeMessages() {
+    super.shouldConsumeMessages();
+  }
+
+  @Test
+  @Override
+  public void shouldConsumeMessagesWithBackPressure() {
+    super.shouldConsumeMessagesWithBackPressure();
   }
 
   @Override
@@ -61,5 +85,10 @@ public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafk
   @Override
   protected EventuateKafkaProducer getProducer() {
     return producer;
+  }
+
+  @Override
+  protected MessageConsumerKafkaImpl getConsumer() {
+    return consumer;
   }
 }

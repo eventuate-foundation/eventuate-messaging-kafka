@@ -6,7 +6,9 @@ import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
@@ -29,11 +31,12 @@ public class KafkaMessageProcessor {
     this.handler = handler;
   }
 
+  private Set<MessageConsumerBacklog> consumerBacklogs = new HashSet<>();
 
   public void process(ConsumerRecord<String, String> record) {
     throwFailureException();
     offsetTracker.noteUnprocessed(new TopicPartition(record.topic(), record.partition()), record.offset());
-    handler.accept(record, (result, t) -> {
+    MessageConsumerBacklog consumerBacklog = handler.apply(record, (result, t) -> {
       if (t != null) {
         logger.error("Got exception: ", t);
         failed.set(new KafkaMessageProcessorFailedException(t));
@@ -42,6 +45,8 @@ public class KafkaMessageProcessor {
         processedRecords.add(record);
       }
     });
+    if (consumerBacklog != null)
+      consumerBacklogs.add(consumerBacklog);
   }
 
   void throwFailureException() {
@@ -68,6 +73,10 @@ public class KafkaMessageProcessor {
 
   public OffsetTracker getPending() {
     return offsetTracker;
+  }
+
+  public int backlog() {
+    return consumerBacklogs.stream().mapToInt(MessageConsumerBacklog::size).sum();
   }
 
 }

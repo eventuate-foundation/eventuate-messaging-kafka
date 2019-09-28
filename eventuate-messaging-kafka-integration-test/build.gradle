@@ -3,7 +3,7 @@ apply plugin: PrivateModulePlugin
 dependencies {
 
     compile project (':eventuate-messaging-kafka-common')
-    compile project (':eventuate-messaging-kafka-basic-consumer')
+    compile project (':eventuate-messaging-kafka-consumer')
     compile project (':eventuate-messaging-kafka-producer')
 
     compile "junit:junit:4.12"

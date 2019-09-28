@@ -9,6 +9,10 @@ public class EventuateKafkaConsumerSpringConfigurationPropertiesConfiguration {
 
   @Bean
   public EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties(EventuateKafkaConsumerSpringConfigurationProperties eventuateKafkaConsumerSpringConfigurationProperties) {
-    return new EventuateKafkaConsumerConfigurationProperties(eventuateKafkaConsumerSpringConfigurationProperties.getProperties());
+    EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties = new EventuateKafkaConsumerConfigurationProperties(eventuateKafkaConsumerSpringConfigurationProperties.getProperties());
+    eventuateKafkaConsumerConfigurationProperties.setBackPressure(eventuateKafkaConsumerSpringConfigurationProperties.getBackPressure());
+    eventuateKafkaConsumerConfigurationProperties.setPollTimeout(eventuateKafkaConsumerSpringConfigurationProperties.getPollTimeout());
+    return eventuateKafkaConsumerConfigurationProperties;
+
   }
 }
