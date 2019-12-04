@@ -2,6 +2,7 @@ package io.eventuate.messaging.kafka.common;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 public class EventuateKafkaMultiMessageBuilder {
   public static final String MAGIC_ID = "a8c79db675e14c4cbf1eb77d0d6d0f00"; // generated UUID
@@ -24,8 +25,8 @@ public class EventuateKafkaMultiMessageBuilder {
 
   public boolean addMessage(EventuateKafkaMultiMessageKeyValue message) {
     try {
-      byte[] keyBytes = message.getKey().getBytes();
-      byte[] valueBytes = message.getValue().getBytes();
+      byte[] keyBytes = Optional.ofNullable(message.getKey()).map(String::getBytes).orElse(new byte[0]);
+      byte[] valueBytes =Optional.ofNullable(message.getValue()).map(String::getBytes).orElse(new byte[0]);
 
       int additionalSize = 2 * 4 + keyBytes.length + valueBytes.length;
 

@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class EventuateKafkaMultiMessageConverter {
   public static final String MAGIC_ID = "a8c79db675e14c4cbf1eb77d0d6d0f00"; // generated UUID
@@ -17,11 +18,11 @@ public class EventuateKafkaMultiMessageConverter {
       binaryStream.write(MAGIC_ID_BYTES);
 
       for (EventuateKafkaMultiMessageKeyValue message : messages) {
-        byte[] keyBytes = message.getKey().getBytes();
+        byte[] keyBytes = Optional.ofNullable(message.getKey()).map(String::getBytes).orElse(new byte[0]);
         binaryStream.write(intToBytes(keyBytes.length));
         binaryStream.write(keyBytes);
 
-        byte[] valueBytes = message.getValue().getBytes();
+        byte[] valueBytes =Optional.ofNullable(message.getValue()).map(String::getBytes).orElse(new byte[0]);
         binaryStream.write(intToBytes(valueBytes.length));
         binaryStream.write(valueBytes);
       }
@@ -46,15 +47,23 @@ public class EventuateKafkaMultiMessageConverter {
       List<EventuateKafkaMultiMessageKeyValue> messages = new ArrayList<>();
 
       while (binaryStream.available() > 0) {
+        String key = null;
+        String value = null;
+
         int keyLength = readInt(binaryStream);
-        byte[] keyBytes = new byte[keyLength];
-        binaryStream.read(keyBytes);
-        String key = new String(keyBytes);
+
+        if (keyLength > 0) {
+          byte[] keyBytes = new byte[keyLength];
+          binaryStream.read(keyBytes);
+          key = new String(keyBytes);
+        }
 
         int valueLength = readInt(binaryStream);
-        byte[] valueBytes = new byte[valueLength];
-        binaryStream.read(valueBytes);
-        String value = new String(valueBytes);
+        if (valueLength > 0) {
+          byte[] valueBytes = new byte[valueLength];
+          binaryStream.read(valueBytes);
+          value = new String(valueBytes);
+        }
 
         messages.add(new EventuateKafkaMultiMessageKeyValue(key, value));
       }

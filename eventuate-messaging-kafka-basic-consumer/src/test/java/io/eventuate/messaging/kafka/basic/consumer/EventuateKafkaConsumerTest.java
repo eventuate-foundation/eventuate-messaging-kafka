@@ -63,7 +63,7 @@ public class EventuateKafkaConsumerTest {
 
   private String topic = uniqueId();
 
-  private LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>();
+  private LinkedBlockingQueue<byte[]> queue = new LinkedBlockingQueue<>();
 
   @Before
   public void init() {
@@ -276,7 +276,7 @@ public class EventuateKafkaConsumerTest {
       return null;
     });
 
-    String message = queue.poll(30, TimeUnit.SECONDS);
+    String message = new String(queue.poll(30, TimeUnit.SECONDS));
     Assert.assertEquals(value, message);
   }
 

@@ -9,30 +9,26 @@ import java.util.List;
 public class EventuateKafkaMultiMessageSerializationTest {
 
   private static final List<EventuateKafkaMultiMessageKeyValue> MESSAGES = Arrays.asList(new EventuateKafkaMultiMessageKeyValue("key1", "value1"), new EventuateKafkaMultiMessageKeyValue("key2", "value2"));
+  private static final List<EventuateKafkaMultiMessageKeyValue> NULL_MESSAGES = Arrays.asList(new EventuateKafkaMultiMessageKeyValue(null, null));
 
   @Test
-  public void testMessageConverter() {
-    EventuateKafkaMultiMessageConverter eventuateMultiMessageConverter = new EventuateKafkaMultiMessageConverter();
-
-    byte[] serializedMessages = eventuateMultiMessageConverter.convertMessagesToBytes(MESSAGES);
-
-    List<EventuateKafkaMultiMessageKeyValue> deserializedMessages = eventuateMultiMessageConverter.convertBytesToMessages(serializedMessages);
-
-    Assert.assertEquals(MESSAGES, deserializedMessages);
+  public void testMessageConverterRegularMessages() {
+    testMessageBuilder(MESSAGES);
   }
 
   @Test
-  public void testMessageBuilder() {
-    EventuateKafkaMultiMessageBuilder eventuateMultiMessageBuilder = new EventuateKafkaMultiMessageBuilder(1000000);
-    EventuateKafkaMultiMessageConverter eventuateMultiMessageConverter = new EventuateKafkaMultiMessageConverter();
+  public void testMessageConverterNullKeyAndValueHandling() {
+    testMessageBuilder(NULL_MESSAGES);
+  }
 
-    Assert.assertTrue(MESSAGES.stream().allMatch(eventuateMultiMessageBuilder::addMessage));
+  @Test
+  public void testMessageBuilderRegularMessages() {
+    testMessageBuilder(MESSAGES);
+  }
 
-    byte[] serializedMessages = eventuateMultiMessageBuilder.toBinaryArray();
-
-    List<EventuateKafkaMultiMessageKeyValue> deserializedMessages = eventuateMultiMessageConverter.convertBytesToMessages(serializedMessages);
-
-    Assert.assertEquals(MESSAGES, deserializedMessages);
+  @Test
+  public void testMessageBuilderNullMessages() {
+    testMessageBuilder(NULL_MESSAGES);
   }
 
   @Test
@@ -57,5 +53,28 @@ public class EventuateKafkaMultiMessageSerializationTest {
     EventuateKafkaMultiMessageBuilder eventuateMultiMessageBuilder = new EventuateKafkaMultiMessageBuilder(sizeOfFirstMessage);
 
     Assert.assertFalse(eventuateMultiMessageBuilder.addMessage(MESSAGES.get(0)));
+  }
+
+  public void testMessageBuilder(List<EventuateKafkaMultiMessageKeyValue> messages) {
+    EventuateKafkaMultiMessageBuilder eventuateMultiMessageBuilder = new EventuateKafkaMultiMessageBuilder(1000000);
+    EventuateKafkaMultiMessageConverter eventuateMultiMessageConverter = new EventuateKafkaMultiMessageConverter();
+
+    Assert.assertTrue(messages.stream().allMatch(eventuateMultiMessageBuilder::addMessage));
+
+    byte[] serializedMessages = eventuateMultiMessageBuilder.toBinaryArray();
+
+    List<EventuateKafkaMultiMessageKeyValue> deserializedMessages = eventuateMultiMessageConverter.convertBytesToMessages(serializedMessages);
+
+    Assert.assertEquals(messages, deserializedMessages);
+  }
+
+  public void testMessageConverter(List<EventuateKafkaMultiMessageKeyValue> messages) {
+    EventuateKafkaMultiMessageConverter eventuateMultiMessageConverter = new EventuateKafkaMultiMessageConverter();
+
+    byte[] serializedMessages = eventuateMultiMessageConverter.convertMessagesToBytes(messages);
+
+    List<EventuateKafkaMultiMessageKeyValue> deserializedMessages = eventuateMultiMessageConverter.convertBytesToMessages(serializedMessages);
+
+    Assert.assertEquals(messages, deserializedMessages);
   }
 }

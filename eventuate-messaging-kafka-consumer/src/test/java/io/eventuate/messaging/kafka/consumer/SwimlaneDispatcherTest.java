@@ -13,7 +13,7 @@ public class SwimlaneDispatcherTest {
 
   private SwimlaneDispatcher swimlaneDispatcher;
   private AtomicInteger numberOfMessagesReceived;
-  private Consumer<KafkaMessage> handler;
+  private Consumer<RawKafkaMessage> handler;
 
   @Before
   public void init() {
@@ -59,7 +59,7 @@ public class SwimlaneDispatcherTest {
       if (i > 0) {
         Assert.assertTrue(swimlaneDispatcher.getRunning());
       }
-      swimlaneDispatcher.dispatch(new KafkaMessage(""), handler);
+      swimlaneDispatcher.dispatch(new RawKafkaMessage("".getBytes()), handler);
     }
   }
 

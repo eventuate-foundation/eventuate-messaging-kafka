@@ -3,14 +3,12 @@ package io.eventuate.messaging.kafka.consumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
-import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerState;
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
+import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageConverter;
+import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageKeyValue;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
 import io.eventuate.util.test.async.Eventually;
-import org.apache.commons.lang.math.IntRange;
-import org.assertj.core.util.Streams;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +20,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -83,7 +79,27 @@ public class MessageConsumerKafkaImplTest {
     });
 
     subscription.close();
+  }
 
+  @Test
+  public void shouldConsumeBatchOfMessage() {
+    String subscriberId = "subscriber-" + System.currentTimeMillis();
+    String topic = "topic-" + System.currentTimeMillis();
+
+    List<EventuateKafkaMultiMessageKeyValue> messages = Arrays.asList(new EventuateKafkaMultiMessageKeyValue(null, "a"),
+            new EventuateKafkaMultiMessageKeyValue(null, "b"), new EventuateKafkaMultiMessageKeyValue(null, "c"));
+
+    producer.send(topic, null, new EventuateKafkaMultiMessageConverter().convertMessagesToBytes(messages));
+
+    handler = mock(KafkaMessageHandler.class);
+
+    KafkaSubscription subscription = consumer.subscribe(subscriberId, Collections.singleton(topic), handler);
+
+    Eventually.eventually(() -> {
+      verify(handler, times(3)).accept(any());
+    });
+
+    subscription.close();
   }
 
   private EventuateKafkaConsumer makeConsumer(String subscriberId, String topic, EventuateKafkaConsumerMessageHandler handler) {

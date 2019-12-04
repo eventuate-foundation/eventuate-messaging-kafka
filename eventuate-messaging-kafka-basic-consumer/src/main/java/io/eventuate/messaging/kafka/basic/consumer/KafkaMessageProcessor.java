@@ -23,7 +23,7 @@ public class KafkaMessageProcessor {
   private EventuateKafkaConsumerMessageHandler handler;
   private OffsetTracker offsetTracker = new OffsetTracker();
 
-  private BlockingQueue<ConsumerRecord<String, String>> processedRecords = new LinkedBlockingQueue<>();
+  private BlockingQueue<ConsumerRecord<String, byte[]>> processedRecords = new LinkedBlockingQueue<>();
   private AtomicReference<KafkaMessageProcessorFailedException> failed = new AtomicReference<>();
 
   public KafkaMessageProcessor(String subscriberId, EventuateKafkaConsumerMessageHandler handler) {
@@ -33,7 +33,7 @@ public class KafkaMessageProcessor {
 
   private Set<MessageConsumerBacklog> consumerBacklogs = new HashSet<>();
 
-  public void process(ConsumerRecord<String, String> record) {
+  public void process(ConsumerRecord<String, byte[]> record) {
     throwFailureException();
     offsetTracker.noteUnprocessed(new TopicPartition(record.topic(), record.partition()), record.offset());
     MessageConsumerBacklog consumerBacklog = handler.apply(record, (result, t) -> {
@@ -57,7 +57,7 @@ public class KafkaMessageProcessor {
   public Map<TopicPartition, OffsetAndMetadata> offsetsToCommit() {
     int count = 0;
     while (true) {
-      ConsumerRecord<String, String> record = processedRecords.poll();
+      ConsumerRecord<String, byte[]> record = processedRecords.poll();
       if (record == null)
         break;
       count++;
