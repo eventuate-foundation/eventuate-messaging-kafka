@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.nio.charset.Charset;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -59,7 +60,7 @@ public class SwimlaneDispatcherTest {
       if (i > 0) {
         Assert.assertTrue(swimlaneDispatcher.getRunning());
       }
-      swimlaneDispatcher.dispatch(new RawKafkaMessage("".getBytes()), handler);
+      swimlaneDispatcher.dispatch(new RawKafkaMessage("".getBytes(Charset.forName("UTF-8"))), handler);
     }
   }
 

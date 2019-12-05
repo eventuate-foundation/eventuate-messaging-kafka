@@ -276,7 +276,7 @@ public class EventuateKafkaConsumerTest {
       return null;
     });
 
-    String message = new String(queue.poll(30, TimeUnit.SECONDS));
+    String message = new String(queue.poll(30, TimeUnit.SECONDS), Charset.forName("UTF-8"));
     Assert.assertEquals(value, message);
   }
 

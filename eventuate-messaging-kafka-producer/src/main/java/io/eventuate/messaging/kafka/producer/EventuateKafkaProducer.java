@@ -6,6 +6,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
@@ -47,7 +48,7 @@ public class EventuateKafkaProducer {
   }
 
   public CompletableFuture<?> send(String topic, String key, String body) {
-    return send(topic, key, body.getBytes());
+    return send(topic, key, body.getBytes(Charset.forName("UTF-8")));
   }
 
   public int partitionFor(String topic, String key) {

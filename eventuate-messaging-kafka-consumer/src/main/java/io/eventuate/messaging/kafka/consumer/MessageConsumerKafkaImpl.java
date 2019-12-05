@@ -9,6 +9,7 @@ import io.eventuate.messaging.partitionmanagement.CommonMessageConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
@@ -57,7 +58,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
   public void handle(RawKafkaMessage message, BiConsumer<Void, Throwable> callback, KafkaMessageHandler kafkaMessageHandler) {
     try {
-      if (isMultiMessage(message)) {
+      if (eventuateKafkaMultiMessageConverter.isMultiMessage1(message.getPayload())) {
         eventuateKafkaMultiMessageConverter
                 .convertBytesToMessages(message.getPayload())
                 .stream()
@@ -66,7 +67,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
                 .forEach(kafkaMessageHandler);
       }
       else {
-        kafkaMessageHandler.accept(new KafkaMessage(new String(message.getPayload())));
+        kafkaMessageHandler.accept(new KafkaMessage(new String(message.getPayload(), Charset.forName("UTF-8"))));
       }
       callback.accept(null, null);
     } catch (Throwable e) {
@@ -82,11 +83,5 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
   public String getId() {
     return id;
-  }
-
-  private boolean isMultiMessage(RawKafkaMessage message) {
-    return message.getPayload().length >= EventuateKafkaMultiMessageConverter.MAGIC_ID_BYTES.length
-            && Arrays.equals(EventuateKafkaMultiMessageConverter.MAGIC_ID_BYTES,
-                    Arrays.copyOf(message.getPayload(), EventuateKafkaMultiMessageConverter.MAGIC_ID_BYTES.length));
   }
 }
