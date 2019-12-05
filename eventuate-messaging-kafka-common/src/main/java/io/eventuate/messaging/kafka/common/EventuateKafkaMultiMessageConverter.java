@@ -3,10 +3,8 @@ package io.eventuate.messaging.kafka.common;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EventuateKafkaMultiMessageConverter {
   public static final String MAGIC_ID = "a8c79db675e14c4cbf1eb77d0d6d0f00"; // generated UUID
@@ -63,7 +61,19 @@ public class EventuateKafkaMultiMessageConverter {
     }
   }
 
-  public boolean isMultiMessage1(byte[] message) {
+  public List<String> convertBytesToValues(byte[] bytes) {
+    if (isMultiMessage(bytes)) {
+      return convertBytesToMessages(bytes)
+              .stream()
+              .map(EventuateKafkaMultiMessageKeyValue::getValue)
+              .collect(Collectors.toList());
+    }
+    else {
+      return Collections.singletonList(new String(bytes, Charset.forName("UTF-8")));
+    }
+  }
+
+  public boolean isMultiMessage(byte[] message) {
     if (message.length < MAGIC_ID_BYTES.length) return false;
 
     return ByteBuffer.wrap(message, 0, MAGIC_ID_BYTES.length).equals(ByteBuffer.wrap(MAGIC_ID_BYTES));

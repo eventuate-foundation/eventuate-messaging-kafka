@@ -58,7 +58,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
   public void handle(RawKafkaMessage message, BiConsumer<Void, Throwable> callback, KafkaMessageHandler kafkaMessageHandler) {
     try {
-      if (eventuateKafkaMultiMessageConverter.isMultiMessage1(message.getPayload())) {
+      if (eventuateKafkaMultiMessageConverter.isMultiMessage(message.getPayload())) {
         eventuateKafkaMultiMessageConverter
                 .convertBytesToMessages(message.getPayload())
                 .stream()
