@@ -4,7 +4,6 @@ import io.eventuate.util.common.StringUtils;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,10 +25,7 @@ public class EventuateKafkaMultiMessageConverter {
   public List<EventuateKafkaMultiMessageKeyValue> convertBytesToMessages(byte[] bytes) {
     ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
 
-    byte[] magicBytes = new byte[MAGIC_ID_BYTES.length];
-    byteBuffer.get(magicBytes);
-
-    if (!Arrays.equals(magicBytes, MAGIC_ID_BYTES)) {
+    if (!isMagicIdPresent(byteBuffer)) {
       throw new RuntimeException("WRONG MAGIC NUMBER!");
     }
 
@@ -77,6 +73,16 @@ public class EventuateKafkaMultiMessageConverter {
 
     for (int i = 0; i < MAGIC_ID_BYTES.length; i++)
       if (message[i] != MAGIC_ID_BYTES[i]) return false;
+
+    return true;
+  }
+
+  private boolean isMagicIdPresent(ByteBuffer byteBuffer) {
+    if (byteBuffer.remaining() < MAGIC_ID_BYTES.length) return false;
+
+    for (int i = 0; i < MAGIC_ID_BYTES.length; i++) {
+      if (MAGIC_ID_BYTES[i] != byteBuffer.get()) return false;
+    }
 
     return true;
   }
