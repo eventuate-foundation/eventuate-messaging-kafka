@@ -1,5 +1,6 @@
 package io.eventuate.messaging.kafka.producer;
 
+import io.eventuate.util.common.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -48,7 +49,7 @@ public class EventuateKafkaProducer {
   }
 
   public CompletableFuture<?> send(String topic, String key, String body) {
-    return send(topic, key, body.getBytes(Charset.forName("UTF-8")));
+    return send(topic, key, StringUtils.stringToBytes(body));
   }
 
   public int partitionFor(String topic, String key) {

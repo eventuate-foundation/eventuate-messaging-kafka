@@ -6,6 +6,7 @@ import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessage
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageConverter;
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageKeyValue;
 import io.eventuate.messaging.partitionmanagement.CommonMessageConsumer;
+import io.eventuate.util.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +68,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
                 .forEach(kafkaMessageHandler);
       }
       else {
-        kafkaMessageHandler.accept(new KafkaMessage(new String(message.getPayload(), Charset.forName("UTF-8"))));
+        kafkaMessageHandler.accept(new KafkaMessage(StringUtils.bytesToString(message.getPayload())));
       }
       callback.accept(null, null);
     } catch (Throwable e) {

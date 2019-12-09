@@ -1,5 +1,6 @@
 package io.eventuate.messaging.kafka.common;
 
+import io.eventuate.util.common.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,8 +37,8 @@ public class EventuateKafkaMultiMessageSerializationTest {
   public void testMessageBuilderSizeCheck() {
     int sizeOfHeaderAndFirstMessage = EventuateKafkaMultiMessageConverter.MAGIC_ID_BYTES.length
             + 2 * 4
-            + MESSAGES.get(0).getKey().getBytes(Charset.forName("UTF-8")).length
-            + MESSAGES.get(0).getValue().getBytes(Charset.forName("UTF-8")).length;
+            + StringUtils.stringToBytes(MESSAGES.get(0).getKey()).length
+            + StringUtils.stringToBytes(MESSAGES.get(0).getValue()).length;
 
     EventuateKafkaMultiMessageConverter.MessageBuilder messageBuilder =
             new EventuateKafkaMultiMessageConverter.MessageBuilder(sizeOfHeaderAndFirstMessage);
@@ -49,8 +50,8 @@ public class EventuateKafkaMultiMessageSerializationTest {
   @Test
   public void testMessageBuilderHeaderSizeCheck() {
     int sizeOfFirstMessage = 2 * 4
-            + MESSAGES.get(0).getKey().getBytes(Charset.forName("UTF-8")).length
-            + MESSAGES.get(0).getValue().getBytes(Charset.forName("UTF-8")).length;
+            + StringUtils.stringToBytes(MESSAGES.get(0).getKey()).length
+            + StringUtils.stringToBytes(MESSAGES.get(0).getValue()).length;
 
     EventuateKafkaMultiMessageConverter.MessageBuilder messageBuilder =
             new EventuateKafkaMultiMessageConverter.MessageBuilder(sizeOfFirstMessage);

@@ -1,5 +1,7 @@
 package io.eventuate.messaging.kafka.common;
 
+import io.eventuate.util.common.StringUtils;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -8,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class EventuateKafkaMultiMessageConverter {
   public static final String MAGIC_ID = "a8c79db675e14c4cbf1eb77d0d6d0f00"; // generated UUID
-  public static final byte[] MAGIC_ID_BYTES = MAGIC_ID.getBytes(Charset.forName("UTF-8"));
+  public static final byte[] MAGIC_ID_BYTES = StringUtils.stringToBytes(MAGIC_ID);
 
   public byte[] convertMessagesToBytes(List<EventuateKafkaMultiMessageKeyValue> messages) {
 
@@ -22,43 +24,40 @@ public class EventuateKafkaMultiMessageConverter {
   }
 
   public List<EventuateKafkaMultiMessageKeyValue> convertBytesToMessages(byte[] bytes) {
-    ByteArrayInputStream binaryStream = new ByteArrayInputStream(bytes);
-    try {
-      byte[] magicBytes = new byte[MAGIC_ID_BYTES.length];
-      binaryStream.read(magicBytes);
+    ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
 
-      if (!Arrays.equals(magicBytes, MAGIC_ID_BYTES)) {
-        throw new RuntimeException("WRONG MAGIC NUMBER!");
-      }
+    byte[] magicBytes = new byte[MAGIC_ID_BYTES.length];
+    byteBuffer.get(magicBytes);
 
-      List<EventuateKafkaMultiMessageKeyValue> messages = new ArrayList<>();
-
-      while (binaryStream.available() > 0) {
-        String key = null;
-        String value = null;
-
-        int keyLength = readInt(binaryStream);
-
-        if (keyLength > 0) {
-          byte[] keyBytes = new byte[keyLength];
-          binaryStream.read(keyBytes);
-          key = new String(keyBytes, Charset.forName("UTF-8"));
-        }
-
-        int valueLength = readInt(binaryStream);
-        if (valueLength > 0) {
-          byte[] valueBytes = new byte[valueLength];
-          binaryStream.read(valueBytes);
-          value = new String(valueBytes, Charset.forName("UTF-8"));
-        }
-
-        messages.add(new EventuateKafkaMultiMessageKeyValue(key, value));
-      }
-
-      return messages;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    if (!Arrays.equals(magicBytes, MAGIC_ID_BYTES)) {
+      throw new RuntimeException("WRONG MAGIC NUMBER!");
     }
+
+    List<EventuateKafkaMultiMessageKeyValue> messages = new ArrayList<>();
+
+    while (byteBuffer.hasRemaining()) {
+      String key = null;
+      String value = null;
+
+      int keyLength = byteBuffer.getInt();
+
+      if (keyLength > 0) {
+        byte[] keyBytes = new byte[keyLength];
+        byteBuffer.get(keyBytes);
+        key = StringUtils.bytesToString(keyBytes);
+      }
+
+      int valueLength = byteBuffer.getInt();
+      if (valueLength > 0) {
+        byte[] valueBytes = new byte[valueLength];
+        byteBuffer.get(valueBytes);
+        value = StringUtils.bytesToString(valueBytes);
+      }
+
+      messages.add(new EventuateKafkaMultiMessageKeyValue(key, value));
+    }
+
+    return messages;
   }
 
   public List<String> convertBytesToValues(byte[] bytes) {
@@ -69,28 +68,17 @@ public class EventuateKafkaMultiMessageConverter {
               .collect(Collectors.toList());
     }
     else {
-      return Collections.singletonList(new String(bytes, Charset.forName("UTF-8")));
+      return Collections.singletonList(StringUtils.bytesToString(bytes));
     }
   }
 
   public boolean isMultiMessage(byte[] message) {
     if (message.length < MAGIC_ID_BYTES.length) return false;
 
-    return ByteBuffer.wrap(message, 0, MAGIC_ID_BYTES.length).equals(ByteBuffer.wrap(MAGIC_ID_BYTES));
-  }
+    for (int i = 0; i < MAGIC_ID_BYTES.length; i++)
+      if (message[i] != MAGIC_ID_BYTES[i]) return false;
 
-  private static byte[] intToBytes(int value) {
-    return ByteBuffer.allocate(4).putInt(value).array();
-  }
-
-  private static int bytesToInt(byte[] bytes) {
-    return ByteBuffer.wrap(bytes).getInt();
-  }
-
-  private static int readInt(ByteArrayInputStream binaryStream) throws IOException {
-    byte[] buf = new byte[4];
-    binaryStream.read(buf);
-    return bytesToInt(buf);
+    return true;
   }
 
   public static class MessageBuilder {
@@ -123,8 +111,8 @@ public class EventuateKafkaMultiMessageConverter {
 
     public boolean addMessage(EventuateKafkaMultiMessageKeyValue message) {
       try {
-        byte[] keyBytes = Optional.ofNullable(message.getKey()).map(String::getBytes).orElse(new byte[0]);
-        byte[] valueBytes = Optional.ofNullable(message.getValue()).map(String::getBytes).orElse(new byte[0]);
+        byte[] keyBytes = Optional.ofNullable(message.getKey()).map(StringUtils::stringToBytes).orElse(new byte[0]);
+        byte[] valueBytes = Optional.ofNullable(message.getValue()).map(StringUtils::stringToBytes).orElse(new byte[0]);
 
         int additionalSize = 2 * 4 + keyBytes.length + valueBytes.length;
 
@@ -143,6 +131,10 @@ public class EventuateKafkaMultiMessageConverter {
       }
 
       return true;
+    }
+
+    private static byte[] intToBytes(int value) {
+      return ByteBuffer.allocate(4).putInt(value).array();
     }
 
     public byte[] toBinaryArray() {

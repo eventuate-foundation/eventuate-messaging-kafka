@@ -1,5 +1,6 @@
 package io.eventuate.messaging.kafka.consumer;
 
+import io.eventuate.util.common.StringUtils;
 import io.eventuate.util.test.async.Eventually;
 import org.junit.Assert;
 import org.junit.Before;
@@ -60,7 +61,7 @@ public class SwimlaneDispatcherTest {
       if (i > 0) {
         Assert.assertTrue(swimlaneDispatcher.getRunning());
       }
-      swimlaneDispatcher.dispatch(new RawKafkaMessage("".getBytes(Charset.forName("UTF-8"))), handler);
+      swimlaneDispatcher.dispatch(new RawKafkaMessage(StringUtils.stringToBytes("")), handler);
     }
   }
 
