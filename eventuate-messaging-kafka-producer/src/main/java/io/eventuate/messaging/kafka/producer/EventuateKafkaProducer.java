@@ -1,9 +1,12 @@
 package io.eventuate.messaging.kafka.producer;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Partitioner;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.internals.DefaultPartitioner;
 import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.List;
 import java.util.Properties;
@@ -14,6 +17,8 @@ public class EventuateKafkaProducer {
 
   private Producer<String, String> producer;
   private Properties producerProps;
+  private StringSerializer stringSerializer = new StringSerializer();
+  private EventuateKafkaPartitioner eventuateKafkaPartitioner = new EventuateKafkaPartitioner();
 
   public EventuateKafkaProducer(String bootstrapServers,
                                 EventuateKafkaProducerConfigurationProperties eventuateKafkaProducerConfigurationProperties) {
@@ -38,7 +43,12 @@ public class EventuateKafkaProducer {
       else
         result.completeExceptionally(exception);
     });
+
     return result;
+  }
+
+  public int partitionFor(String topic, String key) {
+    return eventuateKafkaPartitioner.partition(topic, stringSerializer.serialize(topic, key), partitionsFor(topic));
   }
 
   public List<PartitionInfo> partitionsFor(String topic) {
