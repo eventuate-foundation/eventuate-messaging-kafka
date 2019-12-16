@@ -3,7 +3,6 @@ apply plugin: PrivateModulePlugin
 dependencies {
     compile 'commons-lang:commons-lang:2.6'
 
-    compile "io.eventuate.util:eventuate-util-common:$eventuateUtilVersion"
     compile "org.springframework.boot:spring-boot-starter:$springBootVersion"
     compile 'org.apache.kafka:kafka-clients:2.3.0'
 }

@@ -1,12 +1,11 @@
 package io.eventuate.messaging.kafka.consumer;
 
-import io.eventuate.util.common.StringUtils;
+import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.util.test.async.Eventually;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.nio.charset.Charset;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -61,7 +60,7 @@ public class SwimlaneDispatcherTest {
       if (i > 0) {
         Assert.assertTrue(swimlaneDispatcher.getRunning());
       }
-      swimlaneDispatcher.dispatch(new RawKafkaMessage(StringUtils.stringToBytes("")), handler);
+      swimlaneDispatcher.dispatch(new RawKafkaMessage(EventuateBinaryMessageEncoding.stringToBytes("")), handler);
     }
   }
 

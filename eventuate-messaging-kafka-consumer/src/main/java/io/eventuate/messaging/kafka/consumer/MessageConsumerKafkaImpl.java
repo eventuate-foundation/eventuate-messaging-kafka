@@ -3,14 +3,13 @@ package io.eventuate.messaging.kafka.consumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
+import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageConverter;
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageKeyValue;
 import io.eventuate.messaging.partitionmanagement.CommonMessageConsumer;
-import io.eventuate.util.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
@@ -68,7 +67,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
                 .forEach(kafkaMessageHandler);
       }
       else {
-        kafkaMessageHandler.accept(new KafkaMessage(StringUtils.bytesToString(message.getPayload())));
+        kafkaMessageHandler.accept(new KafkaMessage(EventuateBinaryMessageEncoding.bytesToString(message.getPayload())));
       }
       callback.accept(null, null);
     } catch (Throwable e) {

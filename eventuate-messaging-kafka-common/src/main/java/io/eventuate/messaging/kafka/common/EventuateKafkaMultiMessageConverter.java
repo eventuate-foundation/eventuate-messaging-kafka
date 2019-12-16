@@ -1,7 +1,5 @@
 package io.eventuate.messaging.kafka.common;
 
-import io.eventuate.util.common.StringUtils;
-
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -9,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class EventuateKafkaMultiMessageConverter {
   public static final String MAGIC_ID = "a8c79db675e14c4cbf1eb77d0d6d0f00"; // generated UUID
-  public static final byte[] MAGIC_ID_BYTES = StringUtils.stringToBytes(MAGIC_ID);
+  public static final byte[] MAGIC_ID_BYTES = EventuateBinaryMessageEncoding.stringToBytes(MAGIC_ID);
 
   public byte[] convertMessagesToBytes(List<EventuateKafkaMultiMessageKeyValue> messages) {
 
@@ -40,14 +38,14 @@ public class EventuateKafkaMultiMessageConverter {
       if (keyLength > 0) {
         byte[] keyBytes = new byte[keyLength];
         byteBuffer.get(keyBytes);
-        key = StringUtils.bytesToString(keyBytes);
+        key = EventuateBinaryMessageEncoding.bytesToString(keyBytes);
       }
 
       int valueLength = byteBuffer.getInt();
       if (valueLength > 0) {
         byte[] valueBytes = new byte[valueLength];
         byteBuffer.get(valueBytes);
-        value = StringUtils.bytesToString(valueBytes);
+        value = EventuateBinaryMessageEncoding.bytesToString(valueBytes);
       }
 
       messages.add(new EventuateKafkaMultiMessageKeyValue(key, value));
@@ -64,7 +62,7 @@ public class EventuateKafkaMultiMessageConverter {
               .collect(Collectors.toList());
     }
     else {
-      return Collections.singletonList(StringUtils.bytesToString(bytes));
+      return Collections.singletonList(EventuateBinaryMessageEncoding.bytesToString(bytes));
     }
   }
 
@@ -117,8 +115,8 @@ public class EventuateKafkaMultiMessageConverter {
 
     public boolean addMessage(EventuateKafkaMultiMessageKeyValue message) {
       try {
-        byte[] keyBytes = Optional.ofNullable(message.getKey()).map(StringUtils::stringToBytes).orElse(new byte[0]);
-        byte[] valueBytes = Optional.ofNullable(message.getValue()).map(StringUtils::stringToBytes).orElse(new byte[0]);
+        byte[] keyBytes = Optional.ofNullable(message.getKey()).map(EventuateBinaryMessageEncoding::stringToBytes).orElse(new byte[0]);
+        byte[] valueBytes = Optional.ofNullable(message.getValue()).map(EventuateBinaryMessageEncoding::stringToBytes).orElse(new byte[0]);
 
         int additionalSize = 2 * 4 + keyBytes.length + valueBytes.length;
 

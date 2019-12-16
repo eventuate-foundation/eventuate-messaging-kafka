@@ -1,13 +1,12 @@
 package io.eventuate.messaging.kafka.producer;
 
-import io.eventuate.util.common.StringUtils;
+import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.StringSerializer;
 
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
@@ -49,7 +48,7 @@ public class EventuateKafkaProducer {
   }
 
   public CompletableFuture<?> send(String topic, String key, String body) {
-    return send(topic, key, StringUtils.stringToBytes(body));
+    return send(topic, key, EventuateBinaryMessageEncoding.stringToBytes(body));
   }
 
   public int partitionFor(String topic, String key) {
