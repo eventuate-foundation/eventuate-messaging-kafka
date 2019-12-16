@@ -1,5 +1,6 @@
 package io.eventuate.messaging.kafka.consumer;
 
+import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.util.test.async.Eventually;
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,7 +14,7 @@ public class SwimlaneDispatcherTest {
 
   private SwimlaneDispatcher swimlaneDispatcher;
   private AtomicInteger numberOfMessagesReceived;
-  private Consumer<KafkaMessage> handler;
+  private Consumer<RawKafkaMessage> handler;
 
   @Before
   public void init() {
@@ -59,7 +60,7 @@ public class SwimlaneDispatcherTest {
       if (i > 0) {
         Assert.assertTrue(swimlaneDispatcher.getRunning());
       }
-      swimlaneDispatcher.dispatch(new KafkaMessage(""), handler);
+      swimlaneDispatcher.dispatch(new RawKafkaMessage(EventuateBinaryMessageEncoding.stringToBytes("")), handler);
     }
   }
 

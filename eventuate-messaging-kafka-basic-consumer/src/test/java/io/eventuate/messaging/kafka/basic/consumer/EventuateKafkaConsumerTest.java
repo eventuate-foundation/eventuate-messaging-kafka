@@ -1,5 +1,6 @@
 package io.eventuate.messaging.kafka.basic.consumer;
 
+import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
 import io.eventuate.util.test.async.Eventually;
@@ -63,7 +64,7 @@ public class EventuateKafkaConsumerTest {
 
   private String topic = uniqueId();
 
-  private LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>();
+  private LinkedBlockingQueue<byte[]> queue = new LinkedBlockingQueue<>();
 
   @Before
   public void init() {
@@ -276,7 +277,7 @@ public class EventuateKafkaConsumerTest {
       return null;
     });
 
-    String message = queue.poll(30, TimeUnit.SECONDS);
+    String message = EventuateBinaryMessageEncoding.bytesToString(queue.poll(30, TimeUnit.SECONDS));
     Assert.assertEquals(value, message);
   }
 
