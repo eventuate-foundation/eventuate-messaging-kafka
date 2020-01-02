@@ -33,6 +33,27 @@ subprojects {
 
 
     repositories {
+        mavenLocal()
+        maven {
+            url 'https://maven.aliyun.com/repository/public'
+        }
+
+        maven {
+            credentials {
+                username 'RSCkuC'
+                password 'gl8TtXsm7B'
+            }
+            url 'https://repo.rdc.aliyun.com/repository/4996-release-bbQLyQ/'
+        }
+        maven {
+            credentials {
+                username 'RSCkuC'
+                password 'gl8TtXsm7B'
+            }
+            url 'https://repo.rdc.aliyun.com/repository/4996-snapshot-B1DsL7/'
+        }
+
+
         mavenCentral()
         jcenter()
         maven { url "https://repo.spring.io/milestone" }
@@ -46,25 +67,20 @@ subprojects {
     uploadArchives {
         repositories {
             mavenDeployer {
-                repository(url: deployUrl)
-                pom.project {
-                    licenses {
-                        license {
-                            name 'The Apache Software License, Version 2.0'
-                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                            distribution 'repo'
-                        }
-                    }
+
+                repository(url: 'https://repo.rdc.aliyun.com/repository/4996-release-bbQLyQ/'){
+                    authentication(userName: 'RSCkuC', password: 'gl8TtXsm7B')
                 }
+
             }
         }
     }
 }
 
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.4'
-}
+//task wrapper(type: Wrapper) {
+//    gradleVersion = '4.4'
+//}
 
 
 gradle.projectsEvaluated {

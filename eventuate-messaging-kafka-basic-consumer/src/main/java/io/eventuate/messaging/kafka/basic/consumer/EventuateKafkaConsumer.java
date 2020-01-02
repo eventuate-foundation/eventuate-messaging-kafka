@@ -1,9 +1,6 @@
 package io.eventuate.messaging.kafka.basic.consumer;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
@@ -117,48 +114,58 @@ public class EventuateKafkaConsumer {
   }
 
   private void runPollingLoop(KafkaConsumer<String, String> consumer, KafkaMessageProcessor processor, BackPressureManager backPressureManager) {
-    while (!stopFlag.get()) {
-      ConsumerRecords<String, String> records = consumer.poll(100);
-      if (!records.isEmpty())
-        logger.debug("Got {} {} records", subscriberId, records.count());
 
-      if (records.isEmpty())
-        processor.throwFailureException();
-      else
+      while (!stopFlag.get()) {
+        try{
+        ConsumerRecords<String, String> records = consumer.poll(100);
+        if (!records.isEmpty())
+          logger.debug("Got {} {} records", subscriberId, records.count());
+
+        if (records.isEmpty())
+          processor.throwFailureException();
+        else
+          for (ConsumerRecord<String, String> record : records) {
+            logger.debug("processing record {} {} {}", subscriberId, record.offset(), record.value());
+            if (logger.isDebugEnabled())
+              logger.debug(String.format("EventuateKafkaAggregateSubscriptions subscriber = %s, offset = %d, key = %s, value = %s", subscriberId, record.offset(), record.key(), record.value()));
+            processor.process(record);
+          }
+        if (!records.isEmpty())
+          logger.debug("Processed {} {} records", subscriberId, records.count());
+
+        maybeCommitOffsets(consumer, processor);
+
+        if (!records.isEmpty())
+          logger.debug("To commit {} {}", subscriberId, processor.getPending());
+
+        int backlog = processor.backlog();
+
+        Set<TopicPartition> topicPartitions = new HashSet<>();
         for (ConsumerRecord<String, String> record : records) {
-          logger.debug("processing record {} {} {}", subscriberId, record.offset(), record.value());
-          if (logger.isDebugEnabled())
-            logger.debug(String.format("EventuateKafkaAggregateSubscriptions subscriber = %s, offset = %d, key = %s, value = %s", subscriberId, record.offset(), record.key(), record.value()));
-          processor.process(record);
+          topicPartitions.add(new TopicPartition(record.topic(), record.partition()));
         }
-      if (!records.isEmpty())
-        logger.debug("Processed {} {} records", subscriberId, records.count());
+        BackPressureActions actions = backPressureManager.update(topicPartitions, backlog);
 
-      maybeCommitOffsets(consumer, processor);
+        if (!actions.pause.isEmpty()) {
+          logger.info("Subscriber {} pausing {} due to backlog {} > {}", subscriberId, actions.pause, backlog, backPressureConfig.getHigh());
+          consumer.pause(actions.pause);
+        }
 
-      if (!records.isEmpty())
-        logger.debug("To commit {} {}", subscriberId, processor.getPending());
-
-      int backlog = processor.backlog();
-
-      Set<TopicPartition> topicPartitions = new HashSet<>();
-      for (ConsumerRecord<String, String> record : records) {
-        topicPartitions.add(new TopicPartition(record.topic(), record.partition()));
-      }
-      BackPressureActions actions = backPressureManager.update(topicPartitions, backlog);
-
-      if (!actions.pause.isEmpty()) {
-        logger.info("Subscriber {} pausing {} due to backlog {} > {}", subscriberId, actions.pause, backlog, backPressureConfig.getHigh());
-        consumer.pause(actions.pause);
-      }
-
-      if (!actions.resume.isEmpty()) {
-        logger.info("Subscriber {} resuming {} due to backlog {} <= {}", subscriberId, actions.resume, backlog, backPressureConfig.getLow());
-        consumer.resume(actions.resume);
-      }
-
-
+        if (!actions.resume.isEmpty()) {
+          logger.info("Subscriber {} resuming {} due to backlog {} <= {}", subscriberId, actions.resume, backlog, backPressureConfig.getLow());
+          consumer.resume(actions.resume);
+        }
+      } catch (KafkaMessageProcessorFailedException e) {
+      // We are done
+         logger.error("发生可重复异常 KafkaMessageProcessorFailedException",e);
+        }catch (CommitFailedException e){
+          logger.error("发生可重复异常 CommitFailedException",e);
+        } catch (Throwable e) {
+      logger.error("发生运行时异常 exception: ", e);
+      throw new RuntimeException(e);
     }
+      }
+
   }
 
   public void stop() {
