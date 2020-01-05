@@ -114,7 +114,7 @@ public class EventuateKafkaConsumer {
   }
 
   private void runPollingLoop(KafkaConsumer<String, String> consumer, KafkaMessageProcessor processor, BackPressureManager backPressureManager) {
-
+       int i=0;
       while (!stopFlag.get()) {
         try{
         ConsumerRecords<String, String> records = consumer.poll(100);
@@ -155,13 +155,28 @@ public class EventuateKafkaConsumer {
           logger.info("Subscriber {} resuming {} due to backlog {} <= {}", subscriberId, actions.resume, backlog, backPressureConfig.getLow());
           consumer.resume(actions.resume);
         }
+        i=0;
       } catch (KafkaMessageProcessorFailedException e) {
       // We are done
-         logger.error("发生可重复异常 KafkaMessageProcessorFailedException",e);
+          i++;
+         logger.debug("发生可重复异常 KafkaMessageProcessorFailedException {} 次 {}",i,e);
+         if (i>10){
+           logger.error("发生不可恢复错误，系统无法正常工作，需要人工停机检查！！ {}",e);
+           throw e;
+         }else {
+           try{Thread.sleep(100*i);}catch (Exception e1){};
+         }
         }catch (CommitFailedException e){
-          logger.error("发生可重复异常 CommitFailedException",e);
+          i++;
+          logger.debug("发生可重复异常 CommitFailedException {}次，{}",i,e);
+          if (i>10){
+            logger.error("发生不可恢复错误，系统无法正常工作，需要人工停机检查！！ {}",e);
+            throw e;
+          }else {
+            try{Thread.sleep(100*i);}catch (Exception e1){};
+          }
         } catch (Throwable e) {
-      logger.error("发生运行时异常 exception: ", e);
+          logger.error("发生不可恢复错误，系统无法正常工作，需要人工停机检查！！ {}",e);
       throw new RuntimeException(e);
     }
       }
