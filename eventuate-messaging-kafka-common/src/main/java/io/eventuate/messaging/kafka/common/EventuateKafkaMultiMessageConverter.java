@@ -137,10 +137,9 @@ public class EventuateKafkaMultiMessageConverter {
     }
 
     public boolean addMessage(EventuateKafkaMultiMessageKeyValue message) {
-      byte[] keyBytes = Optional.ofNullable(message.getKey()).map(EventuateBinaryMessageEncoding::stringToBytes).orElse(new byte[0]);
-      byte[] valueBytes = Optional.ofNullable(message.getValue()).map(EventuateBinaryMessageEncoding::stringToBytes).orElse(new byte[0]);
-
-      int additionalSize = 2 * 4 + keyBytes.length + valueBytes.length;
+      int keyLength = message.getKey() == null ? 0 : message.getKey().length() * 2;
+      int valueLength = message.getValue() == null ? 0 : message.getValue().length() * 2;
+      int additionalSize = 2 * 4 + keyLength + valueLength;
 
       if (maxSize.map(ms -> size + additionalSize > ms).orElse(false)) {
         return false;

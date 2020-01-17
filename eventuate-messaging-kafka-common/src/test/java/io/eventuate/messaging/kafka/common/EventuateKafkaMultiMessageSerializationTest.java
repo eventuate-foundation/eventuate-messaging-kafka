@@ -108,8 +108,8 @@ public class EventuateKafkaMultiMessageSerializationTest {
   public void testMessageBuilderSizeCheck() {
     int sizeOfHeaderAndFirstMessage = MessageHeaderEncoder.ENCODED_LENGTH + MultiMessageEncoder.MessagesEncoder.HEADER_SIZE
             + 2 * 4
-            + EventuateBinaryMessageEncoding.stringToBytes(MESSAGES.get(0).getKey()).length
-            + EventuateBinaryMessageEncoding.stringToBytes(MESSAGES.get(0).getValue()).length;
+            + MESSAGES.get(0).getKey().length() * 2
+            + MESSAGES.get(0).getValue().length() * 2;
 
     EventuateKafkaMultiMessageConverter.MessageBuilder messageBuilder =
             new EventuateKafkaMultiMessageConverter.MessageBuilder(sizeOfHeaderAndFirstMessage);
@@ -121,8 +121,8 @@ public class EventuateKafkaMultiMessageSerializationTest {
   @Test
   public void testMessageBuilderHeaderSizeCheck() {
     int sizeOfFirstMessage = 2 * 4
-            + EventuateBinaryMessageEncoding.stringToBytes(MESSAGES.get(0).getKey()).length
-            + EventuateBinaryMessageEncoding.stringToBytes(MESSAGES.get(0).getValue()).length;
+            + MESSAGES.get(0).getKey().length() * 2
+            + MESSAGES.get(0).getValue().length() * 2;
 
     EventuateKafkaMultiMessageConverter.MessageBuilder messageBuilder =
             new EventuateKafkaMultiMessageConverter.MessageBuilder(sizeOfFirstMessage);
