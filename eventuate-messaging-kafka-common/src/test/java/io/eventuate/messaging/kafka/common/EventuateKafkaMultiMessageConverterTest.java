@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class EventuateKafkaMultiMessageSerializationTest {
+public class EventuateKafkaMultiMessageConverterTest {
 
   private static final List<EventuateKafkaMultiMessageKeyValue> MESSAGES = Arrays.asList(new EventuateKafkaMultiMessageKeyValue("key1", "value1"), new EventuateKafkaMultiMessageKeyValue("key2", "value2"));
   private static final List<EventuateKafkaMultiMessageKeyValue> EMPTY_MESSAGES = Arrays.asList(new EventuateKafkaMultiMessageKeyValue("", ""));

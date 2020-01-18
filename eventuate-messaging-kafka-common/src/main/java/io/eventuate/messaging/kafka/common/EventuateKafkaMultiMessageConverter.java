@@ -5,9 +5,9 @@ import io.eventuate.messaging.kafka.common.sbe.MessageHeaderEncoder;
 import io.eventuate.messaging.kafka.common.sbe.MultiMessageDecoder;
 import io.eventuate.messaging.kafka.common.sbe.MultiMessageEncoder;
 import org.agrona.ExpandableArrayBuffer;
-import org.agrona.ExpandableDirectByteBuffer;
+import org.agrona.MutableDirectBuffer;
+import org.agrona.concurrent.UnsafeBuffer;
 
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,16 +27,14 @@ public class EventuateKafkaMultiMessageConverter {
   }
 
   public List<EventuateKafkaMultiMessageKeyValue> convertBytesToMessages(byte[] bytes) {
-    ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
 
-    if (!isMagicIdPresent(byteBuffer)) {
+    if (!isMultiMessage(bytes)) {
       throw new RuntimeException("WRONG MAGIC NUMBER!");
     }
 
     MessageHeaderDecoder messageHeaderDecoder = new MessageHeaderDecoder();
 
-    ExpandableDirectByteBuffer buffer = new ExpandableDirectByteBuffer();
-    buffer.putBytes(0, bytes);
+    MutableDirectBuffer buffer = new UnsafeBuffer(bytes);
 
     messageHeaderDecoder.wrap(buffer, 0);
 
@@ -90,24 +88,11 @@ public class EventuateKafkaMultiMessageConverter {
     return true;
   }
 
-  private boolean isMagicIdPresent(ByteBuffer byteBuffer) {
-    if (byteBuffer.remaining() < MAGIC_ID_BYTES.length) return false;
-
-    for (int i = 0; i < MAGIC_ID_BYTES.length; i++) {
-      if (MAGIC_ID_BYTES[i] != byteBuffer.get()) return false;
-    }
-
-    return true;
-  }
-
   public static class MessageBuilder {
     private Optional<Integer> maxSize;
     private int size;
     private List<EventuateKafkaMultiMessageKeyValue> messagesToWrite = new ArrayList<>();
-
-    MultiMessageEncoder multiMessageEncoder;
-    ExpandableArrayBuffer buffer;
-
+    
     public MessageBuilder(int maxSize) {
       this(Optional.of(maxSize));
     }
@@ -121,15 +106,6 @@ public class EventuateKafkaMultiMessageConverter {
 
       size = MessageHeaderEncoder.ENCODED_LENGTH + MultiMessageEncoder.MessagesEncoder.HEADER_SIZE;
 
-      buffer = new ExpandableArrayBuffer(1000);
-      MessageHeaderEncoder messageHeaderEncoder = new MessageHeaderEncoder();
-
-      for (int i = 0; i < EventuateKafkaMultiMessageConverter.MAGIC_ID_BYTES.length; i++) {
-        byte b = EventuateKafkaMultiMessageConverter.MAGIC_ID_BYTES[i];
-        messageHeaderEncoder.wrap(buffer, 0).magicBytes(i, b);
-      }
-
-      multiMessageEncoder = new MultiMessageEncoder().wrapAndApplyHeader(buffer, 0, messageHeaderEncoder);
     }
 
     public int getSize() {
@@ -137,22 +113,44 @@ public class EventuateKafkaMultiMessageConverter {
     }
 
     public boolean addMessage(EventuateKafkaMultiMessageKeyValue message) {
-      int keyLength = message.getKey() == null ? 0 : message.getKey().length() * 2;
-      int valueLength = message.getValue() == null ? 0 : message.getValue().length() * 2;
-      int additionalSize = 2 * 4 + keyLength + valueLength;
+      int estimatedSize = estimatedMessageSize(message);
 
-      if (maxSize.map(ms -> size + additionalSize > ms).orElse(false)) {
+      if (maxSize.map(ms -> size + estimatedSize > ms).orElse(false)) {
         return false;
       }
 
       messagesToWrite.add(message);
 
-      size += additionalSize;
+      size += estimatedSize;
 
       return true;
     }
 
+    private int estimatedMessageSize(EventuateKafkaMultiMessageKeyValue message) {
+      int keyLength = estimatedStringSizeInBytes(message.getKey());
+      int valueLength = estimatedStringSizeInBytes(message.getValue());
+      return 2 * 4 + keyLength + valueLength;
+    }
+
+    private int estimatedStringSizeInBytes(String s) {
+      return s == null ? 0 : s.length() * 2;
+    }
+
     public byte[] toBinaryArray() {
+
+      ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(2 * size); // Think about the size
+
+      MessageHeaderEncoder messageHeaderEncoder = new MessageHeaderEncoder();
+
+      MessageHeaderEncoder he = messageHeaderEncoder.wrap(buffer, 0);
+
+      for (int i = 0; i < EventuateKafkaMultiMessageConverter.MAGIC_ID_BYTES.length; i++) {
+        byte b = EventuateKafkaMultiMessageConverter.MAGIC_ID_BYTES[i];
+        he.magicBytes(i, b);
+      }
+
+      MultiMessageEncoder multiMessageEncoder = new MultiMessageEncoder().wrapAndApplyHeader(buffer, 0, messageHeaderEncoder);
+
       MultiMessageEncoder.MessagesEncoder messagesEncoder = multiMessageEncoder.messagesCount(messagesToWrite.size());
 
       messagesToWrite.forEach(message -> messagesEncoder.next().key(message.getKey()).value(message.getValue()));
