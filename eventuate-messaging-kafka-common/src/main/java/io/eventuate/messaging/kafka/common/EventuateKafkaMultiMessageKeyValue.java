@@ -1,6 +1,7 @@
 package io.eventuate.messaging.kafka.common;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.util.Objects;
 
@@ -19,6 +20,11 @@ public class EventuateKafkaMultiMessageKeyValue {
 
   public String getValue() {
     return value;
+  }
+
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this);
   }
 
   @Override

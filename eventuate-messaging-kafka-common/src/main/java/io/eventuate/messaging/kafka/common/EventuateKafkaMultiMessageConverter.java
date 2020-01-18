@@ -1,6 +1,12 @@
 package io.eventuate.messaging.kafka.common;
 
-import java.io.*;
+import io.eventuate.messaging.kafka.common.sbe.MessageHeaderDecoder;
+import io.eventuate.messaging.kafka.common.sbe.MessageHeaderEncoder;
+import io.eventuate.messaging.kafka.common.sbe.MultiMessageDecoder;
+import io.eventuate.messaging.kafka.common.sbe.MultiMessageEncoder;
+import org.agrona.ExpandableArrayBuffer;
+import org.agrona.ExpandableDirectByteBuffer;
+
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,31 +33,40 @@ public class EventuateKafkaMultiMessageConverter {
       throw new RuntimeException("WRONG MAGIC NUMBER!");
     }
 
-    List<EventuateKafkaMultiMessageKeyValue> messages = new ArrayList<>();
+    MessageHeaderDecoder messageHeaderDecoder = new MessageHeaderDecoder();
 
-    while (byteBuffer.hasRemaining()) {
-      String key = null;
-      String value = null;
+    ExpandableDirectByteBuffer buffer = new ExpandableDirectByteBuffer();
+    buffer.putBytes(0, bytes);
 
-      int keyLength = byteBuffer.getInt();
+    messageHeaderDecoder.wrap(buffer, 0);
 
-      if (keyLength > 0) {
-        byte[] keyBytes = new byte[keyLength];
-        byteBuffer.get(keyBytes);
-        key = EventuateBinaryMessageEncoding.bytesToString(keyBytes);
-      }
+    final int templateId = messageHeaderDecoder.templateId();
+    final int actingBlockLength = messageHeaderDecoder.blockLength();
+    final int actingVersion = messageHeaderDecoder.version();
 
-      int valueLength = byteBuffer.getInt();
-      if (valueLength > 0) {
-        byte[] valueBytes = new byte[valueLength];
-        byteBuffer.get(valueBytes);
-        value = EventuateBinaryMessageEncoding.bytesToString(valueBytes);
-      }
+    MultiMessageDecoder multiMessageDecoder = new MultiMessageDecoder().wrap(buffer, messageHeaderDecoder.encodedLength(), actingBlockLength, actingVersion);
 
-      messages.add(new EventuateKafkaMultiMessageKeyValue(key, value));
+    MultiMessageDecoder.MessagesDecoder messages = multiMessageDecoder.messages();
+    int count = messages.count();
+
+    List<EventuateKafkaMultiMessageKeyValue> result = new ArrayList<>();
+
+    for (int i = 0; i < count; i++) {
+      messages.next();
+      int keyLength = messages.keyLength();
+      byte[] keyBytes = new byte[keyLength];
+      messages.getKey(keyBytes, 0, keyLength);
+      int valueLength = messages.valueLength();
+      byte[] valueBytes = new byte[valueLength];
+      messages.getKey(valueBytes, 0, valueLength);
+
+      String key = EventuateBinaryMessageEncoding.bytesToString(keyBytes);
+      String value = EventuateBinaryMessageEncoding.bytesToString(valueBytes);
+
+      result.add(new EventuateKafkaMultiMessageKeyValue(key, value));
     }
 
-    return messages;
+    return result;
   }
 
   public List<String> convertBytesToValues(byte[] bytes) {
@@ -88,7 +103,10 @@ public class EventuateKafkaMultiMessageConverter {
   public static class MessageBuilder {
     private Optional<Integer> maxSize;
     private int size;
-    private ByteArrayOutputStream binaryStream = new ByteArrayOutputStream();
+    private List<EventuateKafkaMultiMessageKeyValue> messagesToWrite = new ArrayList<>();
+
+    MultiMessageEncoder multiMessageEncoder;
+    ExpandableArrayBuffer buffer;
 
     public MessageBuilder(int maxSize) {
       this(Optional.of(maxSize));
@@ -101,12 +119,17 @@ public class EventuateKafkaMultiMessageConverter {
     public MessageBuilder(Optional<Integer> maxSize) {
       this.maxSize = maxSize;
 
-      try {
-        binaryStream.write(MAGIC_ID_BYTES);
-        size += MAGIC_ID_BYTES.length;
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+      size = MessageHeaderEncoder.ENCODED_LENGTH + MultiMessageEncoder.MessagesEncoder.HEADER_SIZE;
+
+      buffer = new ExpandableArrayBuffer(1000);
+      MessageHeaderEncoder messageHeaderEncoder = new MessageHeaderEncoder();
+
+      for (int i = 0; i < EventuateKafkaMultiMessageConverter.MAGIC_ID_BYTES.length; i++) {
+        byte b = EventuateKafkaMultiMessageConverter.MAGIC_ID_BYTES[i];
+        messageHeaderEncoder.wrap(buffer, 0).magicBytes(i, b);
       }
+
+      multiMessageEncoder = new MultiMessageEncoder().wrapAndApplyHeader(buffer, 0, messageHeaderEncoder);
     }
 
     public int getSize() {
@@ -114,35 +137,27 @@ public class EventuateKafkaMultiMessageConverter {
     }
 
     public boolean addMessage(EventuateKafkaMultiMessageKeyValue message) {
-      try {
-        byte[] keyBytes = Optional.ofNullable(message.getKey()).map(EventuateBinaryMessageEncoding::stringToBytes).orElse(new byte[0]);
-        byte[] valueBytes = Optional.ofNullable(message.getValue()).map(EventuateBinaryMessageEncoding::stringToBytes).orElse(new byte[0]);
+      int keyLength = message.getKey() == null ? 0 : message.getKey().length() * 2;
+      int valueLength = message.getValue() == null ? 0 : message.getValue().length() * 2;
+      int additionalSize = 2 * 4 + keyLength + valueLength;
 
-        int additionalSize = 2 * 4 + keyBytes.length + valueBytes.length;
-
-        if (maxSize.map(ms -> size + additionalSize > ms).orElse(false)) {
-          return false;
-        }
-
-        binaryStream.write(intToBytes(keyBytes.length));
-        binaryStream.write(keyBytes);
-        binaryStream.write(intToBytes(valueBytes.length));
-        binaryStream.write(valueBytes);
-
-        size += additionalSize;
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+      if (maxSize.map(ms -> size + additionalSize > ms).orElse(false)) {
+        return false;
       }
+
+      messagesToWrite.add(message);
+
+      size += additionalSize;
 
       return true;
     }
 
-    private static byte[] intToBytes(int value) {
-      return ByteBuffer.allocate(4).putInt(value).array();
-    }
-
     public byte[] toBinaryArray() {
-      return binaryStream.toByteArray();
+      MultiMessageEncoder.MessagesEncoder messagesEncoder = multiMessageEncoder.messagesCount(messagesToWrite.size());
+
+      messagesToWrite.forEach(message -> messagesEncoder.next().key(message.getKey()).value(message.getValue()));
+
+      return Arrays.copyOfRange(buffer.byteArray(), 0, size);
     }
   }
 }
