@@ -5,7 +5,7 @@ import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigu
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
 import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageConverter;
-import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageKeyValue;
+import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessage;
 import io.eventuate.messaging.partitionmanagement.CommonMessageConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,8 +61,9 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
       if (eventuateKafkaMultiMessageConverter.isMultiMessage(message.getPayload())) {
         eventuateKafkaMultiMessageConverter
                 .convertBytesToMessages(message.getPayload())
+                .getMessages()
                 .stream()
-                .map(EventuateKafkaMultiMessageKeyValue::getValue)
+                .map(EventuateKafkaMultiMessage::getValue)
                 .map(KafkaMessage::new)
                 .forEach(kafkaMessageHandler);
       }

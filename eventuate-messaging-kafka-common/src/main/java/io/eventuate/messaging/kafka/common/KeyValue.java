@@ -5,11 +5,11 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.util.Objects;
 
-public class EventuateKafkaMultiMessageKeyValue {
+public class KeyValue {
   private String key;
   private String value;
 
-  public EventuateKafkaMultiMessageKeyValue(String key, String value) {
+  public KeyValue(String key, String value) {
     this.key = key;
     this.value = value;
   }
@@ -20,6 +20,16 @@ public class EventuateKafkaMultiMessageKeyValue {
 
   public String getValue() {
     return value;
+  }
+
+  public int estimateSize() {
+    int keyLength = estimatedStringSizeInBytes(key);
+    int valueLength = estimatedStringSizeInBytes(value);
+    return 2 * 4 + keyLength + valueLength;
+  }
+
+  private int estimatedStringSizeInBytes(String s) {
+    return s == null ? 0 : s.length() * 2;
   }
 
   @Override
