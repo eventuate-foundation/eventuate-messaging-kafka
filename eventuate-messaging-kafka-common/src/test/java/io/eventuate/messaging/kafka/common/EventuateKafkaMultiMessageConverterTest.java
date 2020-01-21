@@ -16,12 +16,17 @@ public class EventuateKafkaMultiMessageConverterTest {
 
   private static final List<EventuateKafkaMultiMessage> TWO_BYTE_CHARACTER_MESSAGES = Arrays.asList(new EventuateKafkaMultiMessage("ключ", "значение"));
 
+  private static final String MESSAGE_0_KEY = "key1";
+  private static final String MESSAGE_0_VALUE = "value1";
+  private static final String MESSAGE_1_KEY = "key2";
+  private static final String MESSAGE_1_VALUE = "value2";
+
   private static final List<EventuateKafkaMultiMessage> SIMPLE_MESSAGES =
-          Arrays.asList(new EventuateKafkaMultiMessage("key1", "value1"), new EventuateKafkaMultiMessage("key2", "value2"));
+          Arrays.asList(new EventuateKafkaMultiMessage(MESSAGE_0_KEY, MESSAGE_0_VALUE), new EventuateKafkaMultiMessage(MESSAGE_1_KEY, MESSAGE_1_VALUE));
 
   private static final List<EventuateKafkaMultiMessage> MESSAGES_WITH_HEADERS =
-          Arrays.asList(new EventuateKafkaMultiMessage("key1", "value1", new ArrayList<>(Arrays.asList(new EventuateKafkaMultiMessageHeader("header1key", "header1value"), new EventuateKafkaMultiMessageHeader("header2key", "header2value")))),
-                  new EventuateKafkaMultiMessage("key2", "value2", new ArrayList<>(Arrays.asList(new EventuateKafkaMultiMessageHeader("header3key", "header3value"), new EventuateKafkaMultiMessageHeader("header4key", "header4value")))));
+          Arrays.asList(new EventuateKafkaMultiMessage(MESSAGE_0_KEY, MESSAGE_0_VALUE, new ArrayList<>(Arrays.asList(new EventuateKafkaMultiMessageHeader("header1key", "header1value"), new EventuateKafkaMultiMessageHeader("header2key", "header2value")))),
+                  new EventuateKafkaMultiMessage(MESSAGE_1_KEY, MESSAGE_1_VALUE, new ArrayList<>(Arrays.asList(new EventuateKafkaMultiMessageHeader("header3key", "header3value"), new EventuateKafkaMultiMessageHeader("header4key", "header4value")))));
 
   private static final List<EventuateKafkaMultiMessage> EMPTY_MESSAGES = Arrays.asList(new EventuateKafkaMultiMessage("", ""));
 
@@ -71,8 +76,8 @@ public class EventuateKafkaMultiMessageConverterTest {
   @Test
   public void testMessageBuilderHeaderSizeCheck() {
     int sizeOfFirstMessage = 2 * 4
-            + SIMPLE_MESSAGES.get(0).getKey().length() * 2
-            + SIMPLE_MESSAGES.get(0).getValue().length() * 2;
+            + MESSAGE_0_KEY.length() * 2
+            + MESSAGE_0_VALUE.length() * 2;
 
     EventuateKafkaMultiMessageConverter.MessageBuilder messageBuilder =
             new EventuateKafkaMultiMessageConverter.MessageBuilder(sizeOfFirstMessage);

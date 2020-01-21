@@ -230,12 +230,13 @@ public class EventuateKafkaMultiMessageConverter {
         MultiMessageEncoder.MessagesEncoder.HeadersEncoder messageHeadersEncoder =
                 messagesEncoder.headersCount(message.getHeaders().size());
 
-        message.getHeaders().forEach(header -> messageHeadersEncoder.next().key(header.getKey()).value(header.getValue()));
+        for (int i = 0; i < message.getHeaders().size(); i++) {
+          EventuateKafkaMultiMessageHeader header = message.getHeaders().get(i);
+          messageHeadersEncoder.next().key(header.getKey()).value(header.getValue());
+        }
 
         messagesEncoder.key(message.getKey()).value(message.getValue());
       });
-
-      System.out.println(multiMessageEncoder.encodedLength() + messageHeaderEncoder.encodedLength());
 
       return Arrays.copyOfRange(buffer.byteArray(), 0, multiMessageEncoder.encodedLength() + messageHeaderEncoder.encodedLength());
     }
