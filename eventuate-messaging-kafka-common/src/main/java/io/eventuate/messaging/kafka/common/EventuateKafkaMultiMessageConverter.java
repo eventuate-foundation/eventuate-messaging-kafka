@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class EventuateKafkaMultiMessageConverter {
+  public static int HEADER_SIZE = MessageHeaderEncoder.ENCODED_LENGTH + MultiMessageEncoder.MessagesEncoder.HEADER_SIZE + MultiMessageEncoder.HeadersEncoder.HEADER_SIZE;
   public static final String MAGIC_ID = "a8c79db675e14c4cbf1eb77d0d6d0f00"; // generated UUID
   public static final byte[] MAGIC_ID_BYTES = EventuateBinaryMessageEncoding.stringToBytes(MAGIC_ID);
 
@@ -50,13 +51,13 @@ public class EventuateKafkaMultiMessageConverter {
 
     MultiMessageDecoder multiMessageDecoder = new MultiMessageDecoder().wrap(buffer, messageHeaderDecoder.encodedLength(), actingBlockLength, actingVersion);
 
-    List<EventuateKafkaMultiMessagesHeader> headers = encodeEventuateKafkaMultiMessagesHeaders(multiMessageDecoder);
-    List<EventuateKafkaMultiMessage> messages = encodeEventuateKafkaMultiMessages(multiMessageDecoder);
+    List<EventuateKafkaMultiMessagesHeader> headers = decodeEventuateKafkaMultiMessagesHeaders(multiMessageDecoder);
+    List<EventuateKafkaMultiMessage> messages = decodeEventuateKafkaMultiMessages(multiMessageDecoder);
 
     return new EventuateKafkaMultiMessages(headers, messages);
   }
 
-  private List<EventuateKafkaMultiMessagesHeader> encodeEventuateKafkaMultiMessagesHeaders(MultiMessageDecoder multiMessageDecoder) {
+  private List<EventuateKafkaMultiMessagesHeader> decodeEventuateKafkaMultiMessagesHeaders(MultiMessageDecoder multiMessageDecoder) {
     MultiMessageDecoder.HeadersDecoder headersDecoder = multiMessageDecoder.headers();
     List<EventuateKafkaMultiMessagesHeader> headers = new ArrayList<>();
 
@@ -78,14 +79,14 @@ public class EventuateKafkaMultiMessageConverter {
     return headers;
   }
 
-  private List<EventuateKafkaMultiMessage> encodeEventuateKafkaMultiMessages(MultiMessageDecoder multiMessageDecoder) {
+  private List<EventuateKafkaMultiMessage> decodeEventuateKafkaMultiMessages(MultiMessageDecoder multiMessageDecoder) {
     MultiMessageDecoder.MessagesDecoder messagesDecoder = multiMessageDecoder.messages();
     List<EventuateKafkaMultiMessage> messages = new ArrayList<>();
 
     for (int i = 0; i < messagesDecoder.count(); i++) {
       messagesDecoder.next();
 
-      List<EventuateKafkaMultiMessageHeader> messageHeaders = encodeEventuateKafkaMultiMessageHeaders(messagesDecoder);
+      List<EventuateKafkaMultiMessageHeader> messageHeaders = decodeEventuateKafkaMultiMessageHeaders(messagesDecoder);
 
       int keyLength = messagesDecoder.keyLength();
       byte[] keyBytes = new byte[keyLength];
@@ -103,7 +104,7 @@ public class EventuateKafkaMultiMessageConverter {
     return messages;
   }
 
-  private List<EventuateKafkaMultiMessageHeader> encodeEventuateKafkaMultiMessageHeaders(MultiMessageDecoder.MessagesDecoder messagesDecoder) {
+  private List<EventuateKafkaMultiMessageHeader> decodeEventuateKafkaMultiMessageHeaders(MultiMessageDecoder.MessagesDecoder messagesDecoder) {
     List<EventuateKafkaMultiMessageHeader> messageHeaders = new ArrayList<>();
     MultiMessageDecoder.MessagesDecoder.HeadersDecoder messageHeadersDecoder = messagesDecoder.headers();
 
@@ -165,8 +166,7 @@ public class EventuateKafkaMultiMessageConverter {
     public MessageBuilder(Optional<Integer> maxSize) {
       this.maxSize = maxSize;
 
-      size = MessageHeaderEncoder.ENCODED_LENGTH + MultiMessageEncoder.MessagesEncoder.HEADER_SIZE + MultiMessageEncoder.HeadersEncoder.HEADER_SIZE;
-
+      size = HEADER_SIZE;
     }
 
     public int getSize() {
@@ -206,6 +206,10 @@ public class EventuateKafkaMultiMessageConverter {
     }
 
     public byte[] toBinaryArray() {
+      return toBinaryArray(false);
+    }
+
+    public byte[] toBinaryArray(boolean bufferAsIs) {
 
       ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(2 * size); // Think about the size
 
@@ -235,7 +239,9 @@ public class EventuateKafkaMultiMessageConverter {
         messagesEncoder.key(message.getKey()).value(message.getValue());
       });
 
-      return Arrays.copyOfRange(buffer.byteArray(), 0, size);
+      System.out.println(multiMessageEncoder.encodedLength() + messageHeaderEncoder.encodedLength());
+
+      return Arrays.copyOfRange(buffer.byteArray(), 0, bufferAsIs ? multiMessageEncoder.encodedLength() + messageHeaderEncoder.encodedLength() : size);
     }
   }
 }

@@ -28,6 +28,12 @@ public class EventuateKafkaMultiMessages {
     return messages;
   }
 
+  public int estimateSize() {
+    return
+            headers.stream().map(KeyValue::estimateSize).reduce(0, (a, b) -> a + b) +
+            messages.stream().map(KeyValue::estimateSize).reduce(0, (a, b) -> a + b);
+  }
+
   @Override
   public String toString() {
     return ToStringBuilder.reflectionToString(this);

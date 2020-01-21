@@ -14,7 +14,10 @@ public class EventuateKafkaMultiMessageConverterTest {
   private static final List<EventuateKafkaMultiMessagesHeader> HEADERS =
           new ArrayList<>(Arrays.asList(new EventuateKafkaMultiMessagesHeader("commonheader1key", "commonheader1value"), new EventuateKafkaMultiMessagesHeader("commonheader2key", "commonheader2value")));
 
-  private static final List<EventuateKafkaMultiMessage> SIMPLE_MESSAGES = Arrays.asList(new EventuateKafkaMultiMessage("key1", "value1"), new EventuateKafkaMultiMessage("key2", "value2"));
+  private static final List<EventuateKafkaMultiMessage> TWO_BYTE_CHARACTER_MESSAGES = Arrays.asList(new EventuateKafkaMultiMessage("ключ", "значение"));
+
+  private static final List<EventuateKafkaMultiMessage> SIMPLE_MESSAGES =
+          Arrays.asList(new EventuateKafkaMultiMessage("key1", "value1"), new EventuateKafkaMultiMessage("key2", "value2"));
 
   private static final List<EventuateKafkaMultiMessage> MESSAGES_WITH_HEADERS =
           Arrays.asList(new EventuateKafkaMultiMessage("key1", "value1", new ArrayList<>(Arrays.asList(new EventuateKafkaMultiMessageHeader("header1key", "header1value"), new EventuateKafkaMultiMessageHeader("header2key", "header2value")))),
@@ -24,24 +27,18 @@ public class EventuateKafkaMultiMessageConverterTest {
 
   private static final List<EventuateKafkaMultiMessage> NULL_MESSAGES = Arrays.asList(new EventuateKafkaMultiMessage(null, null));
 
-  @Test
-  public void testMessageConverterSimpleMessages() {
-    testMessageConverter(new EventuateKafkaMultiMessages(SIMPLE_MESSAGES));
-  }
-
-  @Test
-  public void testMessageConverterNullMessages() {
-    testMessageConverter(new EventuateKafkaMultiMessages(NULL_MESSAGES), new EventuateKafkaMultiMessages(EMPTY_MESSAGES));
-  }
-
-  @Test
-  public void testMessageConverterEmptyMessages() {
-    testMessageConverter(new EventuateKafkaMultiMessages(EMPTY_MESSAGES), new EventuateKafkaMultiMessages(EMPTY_MESSAGES));
-  }
+  private byte[] serializedMessages;
+  private int estimatedSize;
 
   @Test
   public void testMessageBuilderSimpleMessages() {
     testMessageBuilder(new EventuateKafkaMultiMessages(SIMPLE_MESSAGES));
+  }
+
+  @Test
+  public void testMessageBuilder2ByteCharacterMessages() {
+    testMessageBuilder(new EventuateKafkaMultiMessages(TWO_BYTE_CHARACTER_MESSAGES));
+    Assert.assertEquals(serializedMessages.length, estimatedSize);
   }
 
   @Test
@@ -83,6 +80,21 @@ public class EventuateKafkaMultiMessageConverterTest {
     Assert.assertFalse(messageBuilder.addMessage(SIMPLE_MESSAGES.get(0)));
   }
 
+  @Test
+  public void testMessageConverterSimpleMessages() {
+    testMessageConverter(new EventuateKafkaMultiMessages(SIMPLE_MESSAGES));
+  }
+
+  @Test
+  public void testMessageConverterNullMessages() {
+    testMessageConverter(new EventuateKafkaMultiMessages(NULL_MESSAGES), new EventuateKafkaMultiMessages(EMPTY_MESSAGES));
+  }
+
+  @Test
+  public void testMessageConverterEmptyMessages() {
+    testMessageConverter(new EventuateKafkaMultiMessages(EMPTY_MESSAGES), new EventuateKafkaMultiMessages(EMPTY_MESSAGES));
+  }
+
   public void testMessageBuilder(EventuateKafkaMultiMessages messages) {
     testMessageBuilder(messages, messages);
   }
@@ -94,7 +106,10 @@ public class EventuateKafkaMultiMessageConverterTest {
     Assert.assertTrue(messageBuilder.setHeaders(original.getHeaders()));
     Assert.assertTrue(original.getMessages().stream().allMatch(messageBuilder::addMessage));
 
-    byte[] serializedMessages = messageBuilder.toBinaryArray();
+    serializedMessages = messageBuilder.toBinaryArray(true);
+    estimatedSize = EventuateKafkaMultiMessageConverter.HEADER_SIZE + original.estimateSize();
+
+    Assert.assertTrue(estimatedSize >= serializedMessages.length);
 
     EventuateKafkaMultiMessages deserializedMessages = eventuateMultiMessageConverter.convertBytesToMessages(serializedMessages);
 
