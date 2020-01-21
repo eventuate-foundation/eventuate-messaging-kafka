@@ -106,7 +106,7 @@ public class EventuateKafkaMultiMessageConverterTest {
     Assert.assertTrue(messageBuilder.setHeaders(original.getHeaders()));
     Assert.assertTrue(original.getMessages().stream().allMatch(messageBuilder::addMessage));
 
-    serializedMessages = messageBuilder.toBinaryArray(true);
+    serializedMessages = messageBuilder.toBinaryArray();
     estimatedSize = EventuateKafkaMultiMessageConverter.HEADER_SIZE + original.estimateSize();
 
     Assert.assertTrue(estimatedSize >= serializedMessages.length);

@@ -206,10 +206,6 @@ public class EventuateKafkaMultiMessageConverter {
     }
 
     public byte[] toBinaryArray() {
-      return toBinaryArray(false);
-    }
-
-    public byte[] toBinaryArray(boolean bufferAsIs) {
 
       ExpandableArrayBuffer buffer = new ExpandableArrayBuffer(2 * size); // Think about the size
 
@@ -241,7 +237,7 @@ public class EventuateKafkaMultiMessageConverter {
 
       System.out.println(multiMessageEncoder.encodedLength() + messageHeaderEncoder.encodedLength());
 
-      return Arrays.copyOfRange(buffer.byteArray(), 0, bufferAsIs ? multiMessageEncoder.encodedLength() + messageHeaderEncoder.encodedLength() : size);
+      return Arrays.copyOfRange(buffer.byteArray(), 0, multiMessageEncoder.encodedLength() + messageHeaderEncoder.encodedLength());
     }
   }
 }
