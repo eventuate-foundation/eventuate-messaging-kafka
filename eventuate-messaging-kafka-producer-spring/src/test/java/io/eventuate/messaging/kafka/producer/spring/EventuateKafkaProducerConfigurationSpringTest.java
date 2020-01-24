@@ -22,7 +22,7 @@ public class EventuateKafkaProducerConfigurationSpringTest {
 
     Assert.assertEquals("1000000", eventuateKafkaProducerConfigurationProperties.getProperties().get("buffer.memory"));
 
-    Assert.assertEquals("org.apache.kafka.common.serialization.StringSerializer",
+    Assert.assertEquals("org.apache.kafka.common.serialization.ByteArraySerializer",
             eventuateKafkaProducerConfigurationProperties.getProperties().get("value.serializer"));
   }
 }

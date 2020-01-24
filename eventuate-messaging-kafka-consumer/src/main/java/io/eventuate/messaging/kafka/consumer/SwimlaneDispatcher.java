@@ -31,7 +31,7 @@ public class SwimlaneDispatcher {
     return running.get();
   }
 
-  public SwimlaneDispatcherBacklog dispatch(KafkaMessage message, Consumer<KafkaMessage> messageConsumer) {
+  public SwimlaneDispatcherBacklog dispatch(RawKafkaMessage message, Consumer<RawKafkaMessage> messageConsumer) {
     synchronized (queue) {
       QueuedMessage queuedMessage = new QueuedMessage(message, messageConsumer);
       queue.add(queuedMessage);
@@ -50,10 +50,10 @@ public class SwimlaneDispatcher {
   }
 
   class QueuedMessage {
-    KafkaMessage message;
-    Consumer<KafkaMessage> messageConsumer;
+    RawKafkaMessage message;
+    Consumer<RawKafkaMessage> messageConsumer;
 
-    public QueuedMessage(KafkaMessage message, Consumer<KafkaMessage> messageConsumer) {
+    public QueuedMessage(RawKafkaMessage message, Consumer<RawKafkaMessage> messageConsumer) {
       this.message = message;
       this.messageConsumer = messageConsumer;
     }

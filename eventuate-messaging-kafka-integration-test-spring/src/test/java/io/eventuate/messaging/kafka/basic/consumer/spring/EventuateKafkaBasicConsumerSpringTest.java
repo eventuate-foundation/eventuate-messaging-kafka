@@ -72,6 +72,12 @@ public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafk
     super.shouldConsumeMessagesWithBackPressure();
   }
 
+  @Test
+  @Override
+  public void shouldConsumeBatchOfMessage() {
+    super.shouldConsumeBatchOfMessage();
+  }
+
   @Override
   protected EventuateKafkaConfigurationProperties getKafkaProperties() {
     return kafkaProperties;
