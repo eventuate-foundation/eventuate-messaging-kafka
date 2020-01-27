@@ -60,7 +60,7 @@ public class EventuateKafkaConsumer {
     this.closeConsumerOnStop = closeConsumerOnStop;
   }
 
-  public static List<PartitionInfo> verifyTopicExistsBeforeSubscribing(KafkaConsumer<String, String> consumer, String topic) {
+  public static List<PartitionInfo> verifyTopicExistsBeforeSubscribing(KafkaConsumer<String, byte[]> consumer, String topic) {
     try {
       logger.debug("Verifying Topic {}", topic);
       List<PartitionInfo> partitions = consumer.partitionsFor(topic);
@@ -72,7 +72,7 @@ public class EventuateKafkaConsumer {
     }
   }
 
-  private void maybeCommitOffsets(KafkaConsumer<String, String> consumer, KafkaMessageProcessor processor) {
+  private void maybeCommitOffsets(KafkaConsumer<String, byte[]> consumer, KafkaMessageProcessor processor) {
     Map<TopicPartition, OffsetAndMetadata> offsetsToCommit = processor.offsetsToCommit();
     if (!offsetsToCommit.isEmpty()) {
       consumerCallbacks.ifPresent(ConsumerCallbacks::onTryCommitCallback);
@@ -86,7 +86,7 @@ public class EventuateKafkaConsumer {
 
   public void start() {
     try {
-      KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties);
+      KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProperties);
 
       KafkaMessageProcessor processor = new KafkaMessageProcessor(subscriberId, handler);
 
@@ -140,16 +140,16 @@ public class EventuateKafkaConsumer {
     }
   }
 
-  private void runPollingLoop(KafkaConsumer<String, String> consumer, KafkaMessageProcessor processor, BackPressureManager backPressureManager) {
+  private void runPollingLoop(KafkaConsumer<String, byte[]> consumer, KafkaMessageProcessor processor, BackPressureManager backPressureManager) {
     while (!stopFlag.get()) {
-      ConsumerRecords<String, String> records = consumer.poll(Duration.of(pollTimeout, ChronoUnit.MILLIS));
+      ConsumerRecords<String, byte[]> records = consumer.poll(Duration.of(100, ChronoUnit.MILLIS));
       if (!records.isEmpty())
         logger.debug("Got {} {} records", subscriberId, records.count());
 
       if (records.isEmpty())
         processor.throwFailureException();
       else
-        for (ConsumerRecord<String, String> record : records) {
+        for (ConsumerRecord<String, byte[]> record : records) {
           logger.debug("processing record {} {} {}", subscriberId, record.offset(), record.value());
           if (logger.isDebugEnabled())
             logger.debug(String.format("EventuateKafkaAggregateSubscriptions subscriber = %s, offset = %d, key = %s, value = %s", subscriberId, record.offset(), record.key(), record.value()));
@@ -171,7 +171,7 @@ public class EventuateKafkaConsumer {
       int backlog = processor.backlog();
 
       Set<TopicPartition> topicPartitions = new HashSet<>();
-      for (ConsumerRecord<String, String> record : records) {
+      for (ConsumerRecord<String, byte[]> record : records) {
         topicPartitions.add(new TopicPartition(record.topic(), record.partition()));
       }
       BackPressureActions actions = backPressureManager.update(topicPartitions, backlog);

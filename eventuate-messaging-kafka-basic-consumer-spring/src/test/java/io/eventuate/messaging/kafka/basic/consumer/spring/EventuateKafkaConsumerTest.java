@@ -4,9 +4,9 @@ import io.eventuate.messaging.kafka.basic.consumer.ConsumerCallbacks;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
+import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
-import io.eventuate.messaging.kafka.producer.spring.EventuateKafkaProducerSpringConfigurationProperties;
 import io.eventuate.messaging.kafka.producer.spring.EventuateKafkaProducerSpringConfigurationPropertiesConfiguration;
 import io.eventuate.util.test.async.Eventually;
 import org.junit.After;
@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
@@ -71,7 +72,7 @@ public class EventuateKafkaConsumerTest {
 
   private String topic = uniqueId();
 
-  private LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>();
+  private LinkedBlockingQueue<byte[]> queue = new LinkedBlockingQueue<>();
 
   @Before
   public void init() {
@@ -89,7 +90,7 @@ public class EventuateKafkaConsumerTest {
   }
 
   @Test
-  public void testHandledConsumerException() throws InterruptedException {
+  public void testHandledConsumerException() {
     when(mockedHandler.apply(any(), any())).then(invocation -> {
       ((BiConsumer<Void, Throwable>)invocation.getArguments()[1]).accept(null, new RuntimeException("Something happend"));
       return null;
@@ -101,7 +102,7 @@ public class EventuateKafkaConsumerTest {
   }
 
   @Test
-  public void testUnhandledConsumerException() throws InterruptedException {
+  public void testUnhandledConsumerException() {
     when(mockedHandler.apply(any(), any())).thenThrow(new RuntimeException("Something happened!"));
     createConsumer(mockedHandler);
     sendMessage();
@@ -110,7 +111,7 @@ public class EventuateKafkaConsumerTest {
   }
 
   @Test
-  public void testConsumerSwitchOnHanging() throws InterruptedException {
+  public void testConsumerSwitchOnHanging() {
     createConsumer(mockedHandler);
     sendMessage();
     assertRecordHandled();
@@ -118,7 +119,7 @@ public class EventuateKafkaConsumerTest {
   }
 
   @Test
-  public void testConsumerStop() throws InterruptedException {
+  public void testConsumerStop() {
     EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer(mockedHandler);
     sendMessage();
     assertRecordHandled();
@@ -127,7 +128,7 @@ public class EventuateKafkaConsumerTest {
   }
 
   @Test
-  public void testNotClosedConsumerOnStop() throws InterruptedException {
+  public void testNotClosedConsumerOnStop() {
     eventuateKafkaConsumerConfigurationProperties.getProperties().put("max.poll.interval.ms", "1000");
     EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer(mockedHandler);
     sendMessage();
@@ -273,18 +274,25 @@ public class EventuateKafkaConsumerTest {
     return Integer.parseInt(bootstrapServers.split(":")[1]);
   }
 
-  private void assertMessageReceivedByNewConsumer() throws InterruptedException {
+  private void assertMessageReceivedByNewConsumer() {
     assertMessageReceivedByNewConsumer("test-value");
   }
 
-  private void assertMessageReceivedByNewConsumer(String value) throws InterruptedException {
+  private void assertMessageReceivedByNewConsumer(String value) {
     createConsumer((record, callback) -> {
       queue.add(record.value());
       callback.accept(null, null);
       return null;
     });
 
-    String message = queue.poll(30, TimeUnit.SECONDS);
+    byte[] m;
+    try {
+      m = queue.poll(30, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    assertNotNull("Message not received by timeout", m);
+    String message = EventuateBinaryMessageEncoding.bytesToString(m);
     Assert.assertEquals(value, message);
   }
 

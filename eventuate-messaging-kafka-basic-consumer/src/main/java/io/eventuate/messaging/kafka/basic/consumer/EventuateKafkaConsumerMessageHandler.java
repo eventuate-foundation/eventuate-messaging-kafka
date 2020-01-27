@@ -6,5 +6,5 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 public interface EventuateKafkaConsumerMessageHandler
-        extends BiFunction<ConsumerRecord<String, String>, BiConsumer<Void, Throwable>, MessageConsumerBacklog> {
+        extends BiFunction<ConsumerRecord<String, byte[]>, BiConsumer<Void, Throwable>, MessageConsumerBacklog> {
 }
