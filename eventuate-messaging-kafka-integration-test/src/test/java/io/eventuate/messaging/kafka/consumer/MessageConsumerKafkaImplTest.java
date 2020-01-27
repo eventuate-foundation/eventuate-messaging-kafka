@@ -5,7 +5,7 @@ import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigu
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageConverter;
-import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageKeyValue;
+import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessage;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
 import io.eventuate.util.test.async.Eventually;
@@ -86,8 +86,8 @@ public class MessageConsumerKafkaImplTest {
     String subscriberId = "subscriber-" + System.currentTimeMillis();
     String topic = "topic-" + System.currentTimeMillis();
 
-    List<EventuateKafkaMultiMessageKeyValue> messages = Arrays.asList(new EventuateKafkaMultiMessageKeyValue(null, "a"),
-            new EventuateKafkaMultiMessageKeyValue(null, "b"), new EventuateKafkaMultiMessageKeyValue(null, "c"));
+    List<EventuateKafkaMultiMessage> messages = Arrays.asList(new EventuateKafkaMultiMessage(null, "a"),
+            new EventuateKafkaMultiMessage(null, "b"), new EventuateKafkaMultiMessage(null, "c"));
 
     producer.send(topic, null, new EventuateKafkaMultiMessageConverter().convertMessagesToBytes(messages));
 
