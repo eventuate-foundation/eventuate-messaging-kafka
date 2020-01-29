@@ -8,4 +8,6 @@ dependencies {
     compile 'org.apache.kafka:kafka-clients:2.3.0'
 
     compile 'uk.co.real-logic:sbe-all:1.15.0'
+
+    testCompile "org.hamcrest:hamcrest-library:1.3"
 }

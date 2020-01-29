@@ -174,7 +174,7 @@ public class EventuateKafkaMultiMessageConverter {
     }
 
     public boolean setHeaders(List<EventuateKafkaMultiMessagesHeader> headers) {
-      int estimatedSize = headers.stream().map(KeyValue::estimateSize).reduce(0, (a, b) -> a + b);
+      int estimatedSize = KeyValue.estimateSize(headers);
 
       if (isSizeOverLimit(estimatedSize)) {
         return false;

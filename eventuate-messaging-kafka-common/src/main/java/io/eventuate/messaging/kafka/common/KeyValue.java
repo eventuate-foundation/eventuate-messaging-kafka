@@ -3,9 +3,11 @@ package io.eventuate.messaging.kafka.common;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
+import java.util.Collection;
 import java.util.Objects;
 
 public class KeyValue {
+  public static final int ESTIMATED_BYTES_PER_CHAR = 3;
   private String key;
   private String value;
 
@@ -28,8 +30,12 @@ public class KeyValue {
     return 2 * 4 + keyLength + valueLength;
   }
 
+  public static int estimateSize(Collection<? extends KeyValue> kvs) {
+    return kvs.stream().mapToInt(KeyValue::estimateSize).sum();
+  }
+
   private int estimatedStringSizeInBytes(String s) {
-    return s == null ? 0 : s.length() * 2;
+    return s == null ? 0 : s.length() * ESTIMATED_BYTES_PER_CHAR;
   }
 
   @Override
