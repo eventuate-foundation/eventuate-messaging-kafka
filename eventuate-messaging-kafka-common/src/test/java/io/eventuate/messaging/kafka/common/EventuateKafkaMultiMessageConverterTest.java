@@ -95,9 +95,9 @@ public class EventuateKafkaMultiMessageConverterTest {
 
   @Test
   public void testMessageBuilderHeaderSizeCheck() {
-    int sizeOfFirstMessage = 2 * 4
-            + MESSAGE_0_KEY.length() * 2
-            + MESSAGE_0_VALUE.length() * 2;
+    int sizeOfFirstMessage =
+            KeyValue.KEY_HEADER_SIZE + MESSAGE_0_KEY.length() * KeyValue.ESTIMATED_BYTES_PER_CHAR +
+            KeyValue.VALUE_HEADER_SIZE + MESSAGE_0_VALUE.length() * KeyValue.ESTIMATED_BYTES_PER_CHAR;
 
     EventuateKafkaMultiMessageConverter.MessageBuilder messageBuilder =
             new EventuateKafkaMultiMessageConverter.MessageBuilder(sizeOfFirstMessage);
