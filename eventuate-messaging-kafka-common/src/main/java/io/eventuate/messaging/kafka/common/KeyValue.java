@@ -8,6 +8,9 @@ import java.util.Objects;
 
 public class KeyValue {
   public static final int ESTIMATED_BYTES_PER_CHAR = 3;
+  public static final int KEY_HEADER_SIZE = 4;
+  public static final int VALUE_HEADER_SIZE = 4;
+
   private String key;
   private String value;
 
@@ -27,7 +30,7 @@ public class KeyValue {
   public int estimateSize() {
     int keyLength = estimatedStringSizeInBytes(key);
     int valueLength = estimatedStringSizeInBytes(value);
-    return 2 * 4 + keyLength + valueLength;
+    return KEY_HEADER_SIZE + keyLength + VALUE_HEADER_SIZE + valueLength;
   }
 
   public static int estimateSize(Collection<? extends KeyValue> kvs) {
