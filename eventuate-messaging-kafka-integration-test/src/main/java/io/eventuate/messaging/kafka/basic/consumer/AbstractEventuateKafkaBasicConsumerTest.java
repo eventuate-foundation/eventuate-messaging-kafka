@@ -1,8 +1,8 @@
 package io.eventuate.messaging.kafka.basic.consumer;
 
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
+import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessage;
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageConverter;
-import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageKeyValue;
 import io.eventuate.messaging.kafka.consumer.KafkaMessage;
 import io.eventuate.messaging.kafka.consumer.KafkaMessageHandler;
 import io.eventuate.messaging.kafka.consumer.KafkaSubscription;
@@ -94,8 +94,8 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
     String subscriberId = "subscriber-" + System.currentTimeMillis();
     String topic = "topic-" + System.currentTimeMillis();
 
-    List<EventuateKafkaMultiMessageKeyValue> messages = Arrays.asList(new EventuateKafkaMultiMessageKeyValue(null, "a"),
-            new EventuateKafkaMultiMessageKeyValue(null, "b"), new EventuateKafkaMultiMessageKeyValue(null, "c"));
+    List<EventuateKafkaMultiMessage> messages = Arrays.asList(new EventuateKafkaMultiMessage(null, "a"),
+            new EventuateKafkaMultiMessage(null, "b"), new EventuateKafkaMultiMessage(null, "c"));
 
     getProducer().send(topic, null, new EventuateKafkaMultiMessageConverter().convertMessagesToBytes(messages));
 

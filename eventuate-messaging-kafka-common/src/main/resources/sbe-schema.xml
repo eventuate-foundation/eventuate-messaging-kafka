@@ -27,7 +27,15 @@
     </types>
 
     <sbe:message name="MultiMessage" id="1">
+        <group name="headers" id="13" dimensionType="groupSizeEncoding">
+            <data name="key" id="17" type="varUtf8Encoding"/>
+            <data name="value" id="18" type="varUtf8Encoding"/>
+        </group>
         <group name="messages" id="12" dimensionType="groupSizeEncoding">
+            <group name="headers" id="14" dimensionType="groupSizeEncoding">
+                <data name="key" id="19" type="varUtf8Encoding"/>
+                <data name="value" id="20" type="varUtf8Encoding"/>
+            </group>
             <data name="key" id="15" type="varUtf8Encoding"/>
             <data name="value" id="16" type="varUtf8Encoding"/>
         </group>
