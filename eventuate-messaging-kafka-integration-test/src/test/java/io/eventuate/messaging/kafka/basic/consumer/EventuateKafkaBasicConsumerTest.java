@@ -1,9 +1,13 @@
 package io.eventuate.messaging.kafka.basic.consumer;
 
+import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
 import io.eventuate.util.test.async.Eventually;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +19,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 import static org.junit.Assert.assertEquals;
@@ -54,11 +63,48 @@ public class EventuateKafkaBasicConsumerTest {
   @Autowired
   private EventuateKafkaProducer producer;
 
+  String subscriberId;
+  String topic;
+
+  @Before
+  public void init() {
+    subscriberId = "subscriber-" + System.currentTimeMillis();
+    topic = "topic-" + System.currentTimeMillis();
+  }
+
+  @Test
+  public void testSendingToSpecificPartition() throws InterruptedException {
+    int partitions = 2;
+
+    BlockingQueue<ConsumerRecord<String, byte[]>> queue = new LinkedBlockingQueue();
+
+    EventuateKafkaConsumerMessageHandler handler = (consumerRecord, voidThrowableBiConsumer) -> {
+      queue.add(consumerRecord);
+      return null;
+    };
+
+    EventuateKafkaConsumer consumer = makeConsumer(subscriberId, topic, handler);
+
+    for (int i = 0; i < partitions; i++) {
+      producer.send(topic, i, "key", EventuateBinaryMessageEncoding.stringToBytes(String.valueOf(i)));
+    }
+
+    Map<Integer, String> partitionValues = new HashMap<>();
+
+    for (int i = 0; i < partitions; i++) {
+      ConsumerRecord<String, byte[]> record = queue.poll(20, TimeUnit.SECONDS);
+      Assert.assertNotNull(record);
+      partitionValues.put(record.partition(), EventuateBinaryMessageEncoding.bytesToString(record.value()));
+    }
+
+    for (int i = 0; i < partitions; i++) {
+      Assert.assertTrue(partitionValues.containsKey(i));
+      Assert.assertEquals(String.valueOf(i), partitionValues.get(i));
+    }
+  }
+
   @Test
   public void shouldStopWhenHandlerThrowsException() {
-    String subscriberId = "subscriber-" + System.currentTimeMillis();
-    String topic = "topic-" + System.currentTimeMillis();
-
     EventuateKafkaConsumerMessageHandler handler = makeExceptionThrowingHandler();
 
     EventuateKafkaConsumer consumer = makeConsumer(subscriberId, topic, handler);

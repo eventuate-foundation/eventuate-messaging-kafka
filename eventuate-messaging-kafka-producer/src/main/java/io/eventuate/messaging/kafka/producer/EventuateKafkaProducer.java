@@ -36,8 +36,16 @@ public class EventuateKafkaProducer {
   }
 
   public CompletableFuture<?> send(String topic, String key, byte[] messages) {
+    return send(new ProducerRecord<>(topic, key, messages));
+  }
+
+  public CompletableFuture<?> send(String topic, int partition, String key, byte[] messages) {
+    return send(new ProducerRecord<>(topic, partition, key, messages));
+  }
+
+  public CompletableFuture<?> send(ProducerRecord<String, byte[]> producerRecord) {
     CompletableFuture<Object> result = new CompletableFuture<>();
-    producer.send(new ProducerRecord<>(topic, key, messages), (metadata, exception) -> {
+    producer.send(producerRecord, (metadata, exception) -> {
       if (exception == null)
         result.complete(metadata);
       else
