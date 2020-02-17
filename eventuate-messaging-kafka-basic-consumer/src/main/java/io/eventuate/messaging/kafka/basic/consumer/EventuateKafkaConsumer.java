@@ -18,8 +18,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A Kafka consumer that manually commits offsets and supports asynchronous message processing
  */
 public class EventuateKafkaConsumer {
-
   private static Logger logger = LoggerFactory.getLogger(EventuateKafkaConsumer.class);
+
   private final String subscriberId;
   private final EventuateKafkaConsumerMessageHandler handler;
   private final List<String> topics;
@@ -86,6 +86,8 @@ public class EventuateKafkaConsumer {
 
   public void start() {
     try {
+      logger.info("Starting eventuate kafka consumer");
+
       KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProperties);
 
       KafkaMessageProcessor processor = new KafkaMessageProcessor(subscriberId, handler);
@@ -96,11 +98,11 @@ public class EventuateKafkaConsumer {
         verifyTopicExistsBeforeSubscribing(consumer, topic);
       }
 
-      logger.debug("Subscribing to {} {}", subscriberId, topics);
+      logger.info("Subscribing to {} {}", subscriberId, topics);
 
       consumer.subscribe(new ArrayList<>(topics));
 
-      logger.debug("Subscribed to {} {}", subscriberId, topics);
+      logger.info("Subscribed to {} {}", subscriberId, topics);
 
       new Thread(() -> {
 
@@ -118,7 +120,7 @@ public class EventuateKafkaConsumer {
 
         } catch (KafkaMessageProcessorFailedException e) {
           // We are done
-          logger.trace("Terminating since KafkaMessageProcessorFailedException");
+          logger.error("Terminating since KafkaMessageProcessorFailedException");
           state = EventuateKafkaConsumerState.MESSAGE_HANDLING_FAILED;
           consumer.close(Duration.of(200, ChronoUnit.MILLIS));
         } catch (Throwable e) {
@@ -127,7 +129,7 @@ public class EventuateKafkaConsumer {
           consumer.close(Duration.of(200, ChronoUnit.MILLIS));
           throw new RuntimeException(e);
         }
-        logger.trace("Stopped in state {}", state);
+        logger.info("Stopped in state {}", state);
 
       }, "Eventuate-subscriber-" + subscriberId).start();
 
@@ -141,6 +143,8 @@ public class EventuateKafkaConsumer {
   }
 
   private void runPollingLoop(KafkaConsumer<String, byte[]> consumer, KafkaMessageProcessor processor, BackPressureManager backPressureManager) {
+    logger.info("Starting polling loop");
+
     while (!stopFlag.get()) {
       ConsumerRecords<String, byte[]> records = consumer.poll(Duration.of(100, ChronoUnit.MILLIS));
       if (!records.isEmpty())
@@ -185,12 +189,13 @@ public class EventuateKafkaConsumer {
         logger.info("Subscriber {} resuming {} due to backlog {} <= {}", subscriberId, actions.resume, backlog, backPressureConfig.getLow());
         consumer.resume(actions.resume);
       }
-
-
     }
+
+    logger.info("Polling loop finished");
   }
 
   public void stop() {
+    logger.info("Stopping eventuate kafka consumer");
     stopFlag.set(true);
 //    can't call consumer.close(), it is not thread safe,
 //    it can produce java.util.ConcurrentModificationException: KafkaConsumer is not safe for multi-threaded access
