@@ -35,9 +35,25 @@ public class EventuateKafkaProducer {
     producer = new KafkaProducer<>(producerProps);
   }
 
-  public CompletableFuture<?> send(String topic, String key, byte[] messages) {
+  public CompletableFuture<?> send(String topic, String key, String body) {
+    return send(topic, key, EventuateBinaryMessageEncoding.stringToBytes(body));
+  }
+
+  public CompletableFuture<?> send(String topic, int partition, String key, String body) {
+    return send(topic, partition, key, EventuateBinaryMessageEncoding.stringToBytes(body));
+  }
+
+  public CompletableFuture<?> send(String topic, String key, byte[] bytes) {
+    return send(new ProducerRecord<>(topic, key, bytes));
+  }
+
+  public CompletableFuture<?> send(String topic, int partition, String key, byte[] bytes) {
+    return send(new ProducerRecord<>(topic, partition, key, bytes));
+  }
+
+  private CompletableFuture<?> send(ProducerRecord<String, byte[]> producerRecord) {
     CompletableFuture<Object> result = new CompletableFuture<>();
-    producer.send(new ProducerRecord<>(topic, key, messages), (metadata, exception) -> {
+    producer.send(producerRecord, (metadata, exception) -> {
       if (exception == null)
         result.complete(metadata);
       else
@@ -45,10 +61,6 @@ public class EventuateKafkaProducer {
     });
 
     return result;
-  }
-
-  public CompletableFuture<?> send(String topic, String key, String body) {
-    return send(topic, key, EventuateBinaryMessageEncoding.stringToBytes(body));
   }
 
   public int partitionFor(String topic, String key) {
