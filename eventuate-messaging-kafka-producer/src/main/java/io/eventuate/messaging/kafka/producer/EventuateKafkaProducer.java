@@ -6,6 +6,8 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Properties;
@@ -13,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class EventuateKafkaProducer {
+  private Logger logger = LoggerFactory.getLogger(this.getClass());
 
   private Producer<String, byte[]> producer;
   private Properties producerProps;
@@ -60,6 +63,8 @@ public class EventuateKafkaProducer {
   }
 
   public void close() {
+    logger.info("Closing kafka producer");
     producer.close(1, TimeUnit.SECONDS);
+    logger.info("Closed kafka producer");
   }
 }

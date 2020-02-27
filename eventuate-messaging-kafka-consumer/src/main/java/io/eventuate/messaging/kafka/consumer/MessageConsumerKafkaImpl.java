@@ -33,6 +33,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
 
   public KafkaSubscription subscribe(String subscriberId, Set<String> channels, KafkaMessageHandler handler) {
+    logger.info("subscribing: subscriberId = {}, channels = {}", subscriberId, channels);
 
     SwimlaneBasedDispatcher swimlaneBasedDispatcher = new SwimlaneBasedDispatcher(subscriberId, Executors.newCachedThreadPool());
 
@@ -50,10 +51,14 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
     kc.start();
 
-    return new KafkaSubscription(() -> {
+    KafkaSubscription kafkaSubscription = new KafkaSubscription(() -> {
       kc.stop();
       consumers.remove(kc);
     });
+
+    logger.info("subscribed: subscriberId = {}, channels = {}", subscriberId, channels);
+
+    return kafkaSubscription;
   }
 
   public void handle(RawKafkaMessage message, BiConsumer<Void, Throwable> callback, KafkaMessageHandler kafkaMessageHandler) {
@@ -79,7 +84,9 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
   @Override
   public void close() {
+    logger.info("Closing MessageConsumerKafkaImpl");
     consumers.forEach(EventuateKafkaConsumer::stop);
+    logger.info("Closed MessageConsumerKafkaImpl");
   }
 
   public String getId() {
