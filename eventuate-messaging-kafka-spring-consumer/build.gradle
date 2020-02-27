@@ -1,0 +1,10 @@
+apply plugin: PublicModulePlugin
+
+dependencies {
+    compile project (":eventuate-messaging-kafka-consumer")
+
+    compile project (":eventuate-messaging-kafka-spring-common")
+    compile project (":eventuate-messaging-kafka-spring-basic-consumer")
+}
+
+
