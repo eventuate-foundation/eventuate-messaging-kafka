@@ -6,6 +6,7 @@ dependencies {
     compile project (':eventuate-messaging-kafka-consumer')
     compile project (':eventuate-messaging-kafka-producer')
 
-    testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
-    testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
+    compile "junit:junit:4.12"
+    compile 'org.mockito:mockito-all:1.9.5'
+    compile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
 }

@@ -5,6 +5,14 @@ public class BackPressureConfig {
   private int low = 0;
   private int high = Integer.MAX_VALUE;
 
+  public BackPressureConfig() {
+  }
+
+  public BackPressureConfig(int low, int high) {
+    this.low = low;
+    this.high = high;
+  }
+
   public int getLow() {
     return low;
   }

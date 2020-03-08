@@ -20,7 +20,7 @@ public class SwimlaneBasedDispatcher {
     this.executor = executor;
   }
 
-  public SwimlaneDispatcherBacklog dispatch(KafkaMessage message, Integer swimlane, Consumer<KafkaMessage> target) {
+  public SwimlaneDispatcherBacklog dispatch(RawKafkaMessage message, Integer swimlane, Consumer<RawKafkaMessage> target) {
     SwimlaneDispatcher swimlaneDispatcher = getOrCreate(swimlane);
     return swimlaneDispatcher.dispatch(message, target);
   }

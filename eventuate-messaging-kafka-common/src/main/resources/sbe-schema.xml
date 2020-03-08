@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
+                   xmlns:xi="http://www.w3.org/2001/XInclude"
+                   package="baseline"
+                   id="1"
+                   version="0"
+                   semanticVersion="5.2"
+                   description="Example base schema which can be extended."
+                   byteOrder="littleEndian" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://fixprotocol.io/2016/sbe http://fixprotocol.io/2016/sbe/sbe.xsd">
+    <types>
+        <composite name="messageHeader" description="Message identifiers and length of message root.">
+            <type name="magicBytes" primitiveType="uint8" length="32"/>
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="templateId" primitiveType="uint16"/>
+            <type name="schemaId" primitiveType="uint16"/>
+            <type name="version" primitiveType="uint16"/>
+        </composite>
+        <composite name="varUtf8Encoding" description="Variable length ASCII String.">
+            <type name="length" primitiveType="uint32" maxValue="1073741824"/>
+            <type name="varData" primitiveType="uint8" length="0" characterEncoding="UTF-8"/>
+        </composite>
+        <composite name="groupSizeEncoding" description="Repeating group dimensions.">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="numInGroup" primitiveType="uint16"/>
+        </composite>
+    </types>
+
+    <sbe:message name="MultiMessage" id="1">
+        <group name="headers" id="13" dimensionType="groupSizeEncoding">
+            <data name="key" id="17" type="varUtf8Encoding"/>
+            <data name="value" id="18" type="varUtf8Encoding"/>
+        </group>
+        <group name="messages" id="12" dimensionType="groupSizeEncoding">
+            <group name="headers" id="14" dimensionType="groupSizeEncoding">
+                <data name="key" id="19" type="varUtf8Encoding"/>
+                <data name="value" id="20" type="varUtf8Encoding"/>
+            </group>
+            <data name="key" id="15" type="varUtf8Encoding"/>
+            <data name="value" id="16" type="varUtf8Encoding"/>
+        </group>
+    </sbe:message>
+
+
+</sbe:messageSchema>

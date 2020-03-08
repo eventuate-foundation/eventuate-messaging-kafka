@@ -3,14 +3,14 @@ package io.eventuate.messaging.kafka.consumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
+import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
+import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageConverter;
+import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessage;
 import io.eventuate.messaging.partitionmanagement.CommonMessageConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 
@@ -23,6 +23,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
   private String bootstrapServers;
   private List<EventuateKafkaConsumer> consumers = new ArrayList<>();
   private EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties;
+  private EventuateKafkaMultiMessageConverter eventuateKafkaMultiMessageConverter = new EventuateKafkaMultiMessageConverter();
 
   public MessageConsumerKafkaImpl(String bootstrapServers,
                                   EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties) {
@@ -35,7 +36,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
     SwimlaneBasedDispatcher swimlaneBasedDispatcher = new SwimlaneBasedDispatcher(subscriberId, Executors.newCachedThreadPool());
 
-    EventuateKafkaConsumerMessageHandler kcHandler = (record, callback) -> swimlaneBasedDispatcher.dispatch(new KafkaMessage(record.value()),
+    EventuateKafkaConsumerMessageHandler kcHandler = (record, callback) -> swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.value()),
             record.partition(),
             message -> handle(message, callback, handler));
 
@@ -55,9 +56,20 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
     });
   }
 
-  public void handle(KafkaMessage message, BiConsumer<Void, Throwable> callback, KafkaMessageHandler kafkaMessageHandler) {
+  public void handle(RawKafkaMessage message, BiConsumer<Void, Throwable> callback, KafkaMessageHandler kafkaMessageHandler) {
     try {
-      kafkaMessageHandler.accept(message);
+      if (eventuateKafkaMultiMessageConverter.isMultiMessage(message.getPayload())) {
+        eventuateKafkaMultiMessageConverter
+                .convertBytesToMessages(message.getPayload())
+                .getMessages()
+                .stream()
+                .map(EventuateKafkaMultiMessage::getValue)
+                .map(KafkaMessage::new)
+                .forEach(kafkaMessageHandler);
+      }
+      else {
+        kafkaMessageHandler.accept(new KafkaMessage(EventuateBinaryMessageEncoding.bytesToString(message.getPayload())));
+      }
       callback.accept(null, null);
     } catch (Throwable e) {
       callback.accept(null, e);

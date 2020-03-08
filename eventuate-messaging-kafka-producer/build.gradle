@@ -2,7 +2,4 @@ apply plugin: PrivateModulePlugin
 
 dependencies {
     compile project (":eventuate-messaging-kafka-common")
-
-    testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
-    testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
 }

@@ -20,6 +20,7 @@ subprojects {
     targetCompatibility = 1.8
 
     bintray {
+        publish = true
         user = System.getenv('BINTRAY_USER')
         key = System.getenv('BINTRAY_KEY')
         configurations = ['archives']
@@ -78,9 +79,11 @@ subprojects {
 }
 
 
+
 //task wrapper(type: Wrapper) {
 //    gradleVersion = '4.4'
 //}
+
 
 
 gradle.projectsEvaluated {
