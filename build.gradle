@@ -69,7 +69,7 @@ subprojects {
             mavenDeployer {
 
                 repository(url: 'https://repo.rdc.aliyun.com/repository/4996-release-bbQLyQ/'){
-                    authentication(userName: 'RSCkuC', password: 'gl8TtXsm7B')
+                    authentication(userName: 'RSCkuC', password: 'zycz2M6hgM')
                 }
 
             }
