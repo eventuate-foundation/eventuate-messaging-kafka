@@ -41,14 +41,14 @@ subprojects {
         maven {
             credentials {
                 username 'RSCkuC'
-                password 'gl8TtXsm7B'
+                password 'zycz2M6hgM'
             }
             url 'https://repo.rdc.aliyun.com/repository/4996-release-bbQLyQ/'
         }
         maven {
             credentials {
                 username 'RSCkuC'
-                password 'gl8TtXsm7B'
+                password 'zycz2M6hgM'
             }
             url 'https://repo.rdc.aliyun.com/repository/4996-snapshot-B1DsL7/'
         }
