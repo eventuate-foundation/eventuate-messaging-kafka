@@ -9,7 +9,7 @@ jobs:
           keys:
             - eventuate-messaging-kafka-{{ checksum "gradle.properties" }}
             - eventuate-messaging-kafka-
-      - run: TERM=dumb ./gradlew testClasses
+      - run: TERM=dumb ./gradlew testClasses aggregateJavaDocs
       - save_cache:
           paths:
             - ~/.gradle
