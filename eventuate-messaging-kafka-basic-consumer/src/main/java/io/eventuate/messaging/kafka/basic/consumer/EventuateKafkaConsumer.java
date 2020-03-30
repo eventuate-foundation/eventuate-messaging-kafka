@@ -2,7 +2,6 @@ package io.eventuate.messaging.kafka.basic.consumer;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
@@ -23,6 +22,7 @@ public class EventuateKafkaConsumer {
   private final String subscriberId;
   private final EventuateKafkaConsumerMessageHandler handler;
   private final List<String> topics;
+  private final KafkaConsumerFactory kafkaConsumerFactory;
   private final BackPressureConfig backPressureConfig;
   private final long pollTimeout;
   private AtomicBoolean stopFlag = new AtomicBoolean(false);
@@ -37,10 +37,12 @@ public class EventuateKafkaConsumer {
                                 EventuateKafkaConsumerMessageHandler handler,
                                 List<String> topics,
                                 String bootstrapServers,
-                                EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties) {
+                                EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties,
+                                KafkaConsumerFactory kafkaConsumerFactory) {
     this.subscriberId = subscriberId;
     this.handler = handler;
     this.topics = topics;
+    this.kafkaConsumerFactory = kafkaConsumerFactory;
 
     this.consumerProperties = ConsumerPropertiesFactory.makeDefaultConsumerProperties(bootstrapServers, subscriberId);
     this.consumerProperties.putAll(eventuateKafkaConsumerConfigurationProperties.getProperties());
@@ -60,7 +62,7 @@ public class EventuateKafkaConsumer {
     this.closeConsumerOnStop = closeConsumerOnStop;
   }
 
-  public static List<PartitionInfo> verifyTopicExistsBeforeSubscribing(KafkaConsumer<String, byte[]> consumer, String topic) {
+  public static List<PartitionInfo> verifyTopicExistsBeforeSubscribing(KafkaMessageConsumer consumer, String topic) {
     try {
       logger.debug("Verifying Topic {}", topic);
       List<PartitionInfo> partitions = consumer.partitionsFor(topic);
@@ -72,12 +74,12 @@ public class EventuateKafkaConsumer {
     }
   }
 
-  private void maybeCommitOffsets(KafkaConsumer<String, byte[]> consumer, KafkaMessageProcessor processor) {
+  private void maybeCommitOffsets(KafkaMessageConsumer consumer, KafkaMessageProcessor processor) {
     Map<TopicPartition, OffsetAndMetadata> offsetsToCommit = processor.offsetsToCommit();
     if (!offsetsToCommit.isEmpty()) {
       consumerCallbacks.ifPresent(ConsumerCallbacks::onTryCommitCallback);
       logger.debug("Committing offsets {} {}", subscriberId, offsetsToCommit);
-      consumer.commitSync(offsetsToCommit);
+      consumer.commitOffsets(offsetsToCommit);
       logger.debug("Committed offsets {}", subscriberId);
       processor.noteOffsetsCommitted(offsetsToCommit);
       consumerCallbacks.ifPresent(ConsumerCallbacks::onCommitedCallback);
@@ -86,7 +88,7 @@ public class EventuateKafkaConsumer {
 
   public void start() {
     try {
-      KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(consumerProperties);
+      KafkaMessageConsumer consumer = kafkaConsumerFactory.makeConsumer(subscriberId, consumerProperties);
 
       KafkaMessageProcessor processor = new KafkaMessageProcessor(subscriberId, handler);
 
@@ -96,14 +98,9 @@ public class EventuateKafkaConsumer {
         verifyTopicExistsBeforeSubscribing(consumer, topic);
       }
 
-      logger.debug("Subscribing to {} {}", subscriberId, topics);
-
-      consumer.subscribe(new ArrayList<>(topics));
-
-      logger.debug("Subscribed to {} {}", subscriberId, topics);
+      subscribe(consumer);
 
       new Thread(() -> {
-
 
         try {
           runPollingLoop(consumer, processor, backpressureManager);
@@ -140,7 +137,13 @@ public class EventuateKafkaConsumer {
     }
   }
 
-  private void runPollingLoop(KafkaConsumer<String, byte[]> consumer, KafkaMessageProcessor processor, BackPressureManager backPressureManager) {
+  private void subscribe(KafkaMessageConsumer consumer) {
+    logger.debug("Subscribing to {} {}", subscriberId, topics);
+    consumer.subscribe(topics);
+    logger.debug("Subscribed to {} {}", subscriberId, topics);
+  }
+
+  private void runPollingLoop(KafkaMessageConsumer consumer, KafkaMessageProcessor processor, BackPressureManager backPressureManager) {
     while (!stopFlag.get()) {
       ConsumerRecords<String, byte[]> records = consumer.poll(Duration.of(100, ChronoUnit.MILLIS));
       if (!records.isEmpty())
