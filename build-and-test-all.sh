@@ -4,6 +4,8 @@ set -e
 
 . ./set-env.sh
 
+./gradlew testClasses
+
 docker-compose down -v
 
 docker-compose up --build -d

@@ -96,7 +96,7 @@ public class EventuateKafkaConsumerTest {
     });
     createConsumer(mockedHandler);
     sendMessage();
-    assertRecordHandled();
+    assertHandlerInvoked();
     assertMessageReceivedByNewConsumer();
   }
 
@@ -105,23 +105,25 @@ public class EventuateKafkaConsumerTest {
     when(mockedHandler.apply(any(), any())).thenThrow(new RuntimeException("Something happened!"));
     createConsumer(mockedHandler);
     sendMessage();
-    assertRecordHandled();
+    assertHandlerInvoked();
     assertMessageReceivedByNewConsumer();
   }
 
-  @Test
+  /*
+  /
   public void testConsumerSwitchOnHanging() {
     createConsumer(mockedHandler);
     sendMessage();
-    assertRecordHandled();
+    assertHandlerInvoked();
     assertMessageReceivedByNewConsumer();
   }
+  */
 
   @Test
   public void testConsumerStop() {
     EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer(mockedHandler);
     sendMessage();
-    assertRecordHandled();
+    assertHandlerInvoked();
     eventuateKafkaConsumer.stop();
     assertMessageReceivedByNewConsumer();
   }
@@ -131,7 +133,7 @@ public class EventuateKafkaConsumerTest {
     eventuateKafkaConsumerConfigurationProperties.getProperties().put("max.poll.interval.ms", "1000");
     EventuateKafkaConsumer eventuateKafkaConsumer = createConsumer(mockedHandler);
     sendMessage();
-    assertRecordHandled();
+    assertHandlerInvoked();
     eventuateKafkaConsumer.setCloseConsumerOnStop(false);
     eventuateKafkaConsumer.stop();
     assertMessageReceivedByNewConsumer();
@@ -295,7 +297,7 @@ public class EventuateKafkaConsumerTest {
     Assert.assertEquals(value, message);
   }
 
-  private void assertRecordHandled() {
+  private void assertHandlerInvoked() {
     Eventually.eventually(() -> verify(mockedHandler).apply(any(), any()));
   }
 
