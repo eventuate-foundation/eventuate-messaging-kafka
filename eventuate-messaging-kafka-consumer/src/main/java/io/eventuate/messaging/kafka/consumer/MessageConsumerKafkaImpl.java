@@ -3,6 +3,7 @@ package io.eventuate.messaging.kafka.consumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
+import io.eventuate.messaging.kafka.basic.consumer.KafkaConsumerFactory;
 import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageConverter;
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessage;
@@ -23,14 +24,16 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
   private String bootstrapServers;
   private List<EventuateKafkaConsumer> consumers = new ArrayList<>();
   private EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties;
+  private KafkaConsumerFactory kafkaConsumerFactory;
   private EventuateKafkaMultiMessageConverter eventuateKafkaMultiMessageConverter = new EventuateKafkaMultiMessageConverter();
 
   public MessageConsumerKafkaImpl(String bootstrapServers,
-                                  EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties) {
+                                  EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties,
+                                  KafkaConsumerFactory kafkaConsumerFactory) {
     this.bootstrapServers = bootstrapServers;
     this.eventuateKafkaConsumerConfigurationProperties = eventuateKafkaConsumerConfigurationProperties;
+    this.kafkaConsumerFactory = kafkaConsumerFactory;
   }
-
 
   public KafkaSubscription subscribe(String subscriberId, Set<String> channels, KafkaMessageHandler handler) {
 
@@ -44,7 +47,8 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
             kcHandler,
             new ArrayList<>(channels),
             bootstrapServers,
-            eventuateKafkaConsumerConfigurationProperties);
+            eventuateKafkaConsumerConfigurationProperties,
+            kafkaConsumerFactory);
 
     consumers.add(kc);
 
@@ -66,8 +70,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
                 .map(EventuateKafkaMultiMessage::getValue)
                 .map(KafkaMessage::new)
                 .forEach(kafkaMessageHandler);
-      }
-      else {
+      } else {
         kafkaMessageHandler.accept(new KafkaMessage(EventuateBinaryMessageEncoding.bytesToString(message.getPayload())));
       }
       callback.accept(null, null);

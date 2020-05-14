@@ -1,9 +1,11 @@
 package io.eventuate.messaging.kafka.spring.basic.consumer;
 
 import io.eventuate.messaging.kafka.basic.consumer.ConsumerCallbacks;
+import io.eventuate.messaging.kafka.basic.consumer.DefaultKafkaConsumerFactory;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumer;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
+import io.eventuate.messaging.kafka.basic.consumer.KafkaConsumerFactory;
 import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
@@ -73,6 +75,8 @@ public class EventuateKafkaConsumerTest {
 
   private LinkedBlockingQueue<byte[]> queue = new LinkedBlockingQueue<>();
 
+  private KafkaConsumerFactory kafkaConsumerFactory = new DefaultKafkaConsumerFactory();
+
   @Before
   public void init() {
     eventuateKafkaProducer = new EventuateKafkaProducer(bootstrapServers, eventuateKafkaProducerConfigurationProperties);
@@ -91,7 +95,7 @@ public class EventuateKafkaConsumerTest {
   @Test
   public void testHandledConsumerException() {
     when(mockedHandler.apply(any(), any())).then(invocation -> {
-      ((BiConsumer<Void, Throwable>)invocation.getArguments()[1]).accept(null, new RuntimeException("Something happend"));
+      ((BiConsumer<Void, Throwable>) invocation.getArguments()[1]).accept(null, new RuntimeException("Something happend"));
       return null;
     });
     createConsumer(mockedHandler);
@@ -229,8 +233,8 @@ public class EventuateKafkaConsumerTest {
   private void waitForKafka() {
     Eventually.eventually(60, 500, TimeUnit.MILLISECONDS, () -> {
       String host = getKafkaHost();
-      try(Socket ignored = new Socket(host, getKafkaPort())) {}
-      catch (IOException e) {
+      try (Socket ignored = new Socket(host, getKafkaPort())) {
+      } catch (IOException e) {
         throw new RuntimeException("Can't connect to host: " + host, e);
       }
     });
@@ -242,12 +246,13 @@ public class EventuateKafkaConsumerTest {
       String x = uniqueId();
       EventuateKafkaConsumer eventuateKafkaConsumer = new EventuateKafkaConsumer(x,
               (record, callback) -> {
-          callback.accept(null, null);
-          return null;
-        },
+                callback.accept(null, null);
+                return null;
+              },
               Collections.singletonList(x),
               bootstrapServers,
-              eventuateKafkaConsumerConfigurationProperties);
+              eventuateKafkaConsumerConfigurationProperties,
+              kafkaConsumerFactory);
 
       eventuateKafkaConsumer.start();
 
@@ -260,10 +265,10 @@ public class EventuateKafkaConsumerTest {
 
   private void waitForKafkaStop() {
     Eventually.eventually(60, 500, TimeUnit.MILLISECONDS, () -> {
-      try(Socket ignored = new Socket(getKafkaHost(), getKafkaPort())) {
+      try (Socket ignored = new Socket(getKafkaHost(), getKafkaPort())) {
         throw new IllegalStateException("Kafka was not stopped!");
+      } catch (IOException ignored) {
       }
-      catch (IOException ignored) {}
     });
   }
 
@@ -314,7 +319,9 @@ public class EventuateKafkaConsumerTest {
             handler,
             Collections.singletonList(topic),
             bootstrapServers,
-            eventuateKafkaConsumerConfigurationProperties);
+            eventuateKafkaConsumerConfigurationProperties,
+            kafkaConsumerFactory
+    );
 
     eventuateKafkaConsumer.start();
 

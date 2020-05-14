@@ -25,6 +25,9 @@ public class EventuateKafkaBasicConsumerMicronautTest extends AbstractEventuateK
   @Inject
   private MessageConsumerKafkaImpl consumer;
 
+  @Inject
+  private KafkaConsumerFactory kafkaConsumerFactory;
+
   @Test
   @Override
   public void shouldStopWhenHandlerThrowsException() {
@@ -67,5 +70,10 @@ public class EventuateKafkaBasicConsumerMicronautTest extends AbstractEventuateK
   @Override
   protected MessageConsumerKafkaImpl getConsumer() {
     return consumer;
+  }
+
+  @Override
+  protected KafkaConsumerFactory getKafkaConsumerFactory() {
+    return kafkaConsumerFactory;
   }
 }

@@ -1,7 +1,9 @@
 package io.eventuate.messaging.kafka.spring.basic.consumer;
 
 import io.eventuate.messaging.kafka.basic.consumer.AbstractEventuateKafkaBasicConsumerTest;
+import io.eventuate.messaging.kafka.basic.consumer.DefaultKafkaConsumerFactory;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
+import io.eventuate.messaging.kafka.basic.consumer.KafkaConsumerFactory;
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
 import io.eventuate.messaging.kafka.spring.common.EventuateKafkaPropertiesConfiguration;
 import io.eventuate.messaging.kafka.consumer.MessageConsumerKafkaImpl;
@@ -37,8 +39,14 @@ public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafk
 
     @Bean
     public MessageConsumerKafkaImpl messageConsumerKafka(EventuateKafkaConfigurationProperties props,
-                                                         EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties) {
-      return new MessageConsumerKafkaImpl(props.getBootstrapServers(), eventuateKafkaConsumerConfigurationProperties);
+                                                         EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties,
+                                                         KafkaConsumerFactory kafkaConsumerFactory) {
+      return new MessageConsumerKafkaImpl(props.getBootstrapServers(), eventuateKafkaConsumerConfigurationProperties, kafkaConsumerFactory);
+    }
+
+    @Bean
+    public KafkaConsumerFactory kafkaConsumerFactory() {
+      return new DefaultKafkaConsumerFactory();
     }
   }
 
@@ -53,6 +61,9 @@ public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafk
 
   @Autowired
   private MessageConsumerKafkaImpl consumer;
+
+  @Autowired
+  private KafkaConsumerFactory kafkaConsumerFactory;
 
   @Test
   @Override
@@ -96,5 +107,10 @@ public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafk
   @Override
   protected MessageConsumerKafkaImpl getConsumer() {
     return consumer;
+  }
+
+  @Override
+  protected KafkaConsumerFactory getKafkaConsumerFactory() {
+    return kafkaConsumerFactory;
   }
 }

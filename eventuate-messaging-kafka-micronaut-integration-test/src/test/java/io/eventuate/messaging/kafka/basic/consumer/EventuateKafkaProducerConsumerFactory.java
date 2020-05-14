@@ -17,7 +17,13 @@ public class EventuateKafkaProducerConsumerFactory {
 
   @Singleton
   public MessageConsumerKafkaImpl messageConsumerKafka(EventuateKafkaConfigurationProperties props,
-                                                       EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties) {
-    return new MessageConsumerKafkaImpl(props.getBootstrapServers(), eventuateKafkaConsumerConfigurationProperties);
+                                                       EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties,
+                                                       KafkaConsumerFactory kafkaConsumerFactory) {
+    return new MessageConsumerKafkaImpl(props.getBootstrapServers(), eventuateKafkaConsumerConfigurationProperties, kafkaConsumerFactory);
+  }
+
+  @Singleton
+  public KafkaConsumerFactory kafkaConsumerFactory() {
+    return new DefaultKafkaConsumerFactory();
   }
 }

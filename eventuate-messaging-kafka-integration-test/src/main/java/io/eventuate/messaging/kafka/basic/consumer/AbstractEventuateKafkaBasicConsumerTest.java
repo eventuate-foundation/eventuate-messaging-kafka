@@ -25,9 +25,15 @@ import static org.mockito.Mockito.*;
 public abstract class AbstractEventuateKafkaBasicConsumerTest {
 
   protected abstract EventuateKafkaConfigurationProperties getKafkaProperties();
+
   protected abstract EventuateKafkaConsumerConfigurationProperties getConsumerProperties();
+
   protected abstract EventuateKafkaProducer getProducer();
+
   protected abstract MessageConsumerKafkaImpl getConsumer();
+
+  protected abstract KafkaConsumerFactory getKafkaConsumerFactory();
+
   private KafkaMessageHandler handler;
 
   public void shouldStopWhenHandlerThrowsException() {
@@ -68,7 +74,7 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
     String topic = "topic-" + System.currentTimeMillis();
     LinkedBlockingQueue<KafkaMessage> messages = new LinkedBlockingQueue<>();
 
-    for (int i = 0 ; i < 100; i++)
+    for (int i = 0; i < 100; i++)
       sendMessages(topic);
 
     handler = kafkaMessage -> {
@@ -115,7 +121,8 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
             handler,
             Collections.singletonList(topic),
             getKafkaProperties().getBootstrapServers(),
-            getConsumerProperties());
+            getConsumerProperties(),
+            getKafkaConsumerFactory());
 
     consumer.start();
     return consumer;
@@ -134,7 +141,7 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
     EventuateKafkaConsumerMessageHandler handler = mock(EventuateKafkaConsumerMessageHandler.class);
 
     doAnswer(invocation -> {
-      CompletableFuture.runAsync(() -> ((BiConsumer<Void, Throwable>)invocation.getArguments()[1]).accept(null, new RuntimeException("Test is simulating failure")));
+      CompletableFuture.runAsync(() -> ((BiConsumer<Void, Throwable>) invocation.getArguments()[1]).accept(null, new RuntimeException("Test is simulating failure")));
       return null;
     }).when(handler).apply(any(), any());
     return handler;
