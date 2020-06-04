@@ -22,6 +22,26 @@ public class DefaultKafkaMessageConsumer implements KafkaMessageConsumer {
   }
 
   @Override
+  public void assign(Collection<TopicPartition> topicPartitions) {
+    delegate.assign(topicPartitions);
+  }
+
+  @Override
+  public void seekToEnd(Collection<TopicPartition> topicPartitions) {
+    delegate.seekToEnd(topicPartitions);
+  }
+
+  @Override
+  public long position(TopicPartition topicPartition) {
+    return delegate.position(topicPartition);
+  }
+
+  @Override
+  public void seek(TopicPartition topicPartition, long position) {
+    delegate.seek(topicPartition, position);
+  }
+
+  @Override
   public void subscribe(List<String> topics) {
     delegate.subscribe(new ArrayList<>(topics));
   }
