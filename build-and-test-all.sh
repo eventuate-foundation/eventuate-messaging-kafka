@@ -2,16 +2,15 @@
 
 set -e
 
-. ./set-env.sh
+export EVENTUATE_EVENT_TRACKER_ITERATIONS=120
 
 ./gradlew testClasses
 
-docker-compose down -v
+docker="./gradlew compose"
 
-docker-compose up --build -d
-
-sleep 10
+${docker}Down
+${docker}Up
 
 ./gradlew $GRADLE_OPTIONS cleanTest build $GRADLE_TASK_OPTIONS
 
-docker-compose down -v
+${docker}Down
