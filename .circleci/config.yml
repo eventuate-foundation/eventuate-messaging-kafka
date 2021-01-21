@@ -7,13 +7,13 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - eventuate-messaging-kafka-{{ checksum "gradle.properties" }}
+            - eventuate-messaging-kafka-{{ checksum "gradle.properties" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
             - eventuate-messaging-kafka-
       - run: TERM=dumb ./gradlew testClasses aggregateJavaDocs
       - save_cache:
           paths:
             - ~/.gradle
-          key: eventuate-messaging-kafka-{{ checksum "gradle.properties" }}
+          key: eventuate-messaging-kafka-{{ checksum "gradle.properties" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
       - run: TERM=dumb ./build-and-test-all.sh
       - run:
           name: Publish artifacts
@@ -23,11 +23,7 @@ jobs:
       - run:
           name: Save test results
           command: |
-            mkdir -p ~/junit ~/container-logs
-            docker ps -a > ~/container-logs/containers.txt
-            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/junit/ \;
-            sudo bash -c 'find /var/lib/docker/containers -name "*-json.log" -exec cp {} ~/container-logs \;'
-            sudo bash -c 'find  ~/container-logs -type f -exec chown circleci {} \;'
+            TERM=dumb ./.circleci/save-containers-and-tests.sh
           when: always
       - store_test_results:
           path: ~/junit
