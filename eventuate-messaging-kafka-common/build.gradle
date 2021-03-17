@@ -1,4 +1,3 @@
-apply plugin: PrivateModulePlugin
 apply plugin: SbeToolPlugin
 
 dependencies {
