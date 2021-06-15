@@ -8,12 +8,15 @@ import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageConverter;
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessage;
 import io.eventuate.messaging.partitionmanagement.CommonMessageConsumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
@@ -36,12 +39,23 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
   }
 
   public KafkaSubscription subscribe(String subscriberId, Set<String> channels, KafkaMessageHandler handler) {
+    return subscribeWithReactiveHandler(subscriberId, channels, kafkaMessage -> {
+      handler.accept(kafkaMessage);
+      return CompletableFuture.completedFuture(null);
+    });
+  }
+
+  public KafkaSubscription subscribeWithReactiveHandler(String subscriberId, Set<String> channels, ReactiveKafkaMessageHandler handler) {
 
     SwimlaneBasedDispatcher swimlaneBasedDispatcher = new SwimlaneBasedDispatcher(subscriberId, Executors.newCachedThreadPool());
 
-    EventuateKafkaConsumerMessageHandler kcHandler = (record, callback) -> swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.value()),
-            record.partition(),
-            message -> handle(message, callback, handler));
+    EventuateKafkaConsumerMessageHandler kcHandler = (record, callback) -> {
+      if (eventuateKafkaMultiMessageConverter.isMultiMessage(record.value())) {
+        return handleBatch(record, swimlaneBasedDispatcher, callback, handler);
+      } else {
+        return swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.value()), record.partition(), message -> handle(message, callback, handler));
+      }
+    };
 
     EventuateKafkaConsumer kc = new EventuateKafkaConsumer(subscriberId,
             kcHandler,
@@ -60,20 +74,29 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
     });
   }
 
-  public void handle(RawKafkaMessage message, BiConsumer<Void, Throwable> callback, KafkaMessageHandler kafkaMessageHandler) {
+  private SwimlaneDispatcherBacklog handleBatch(ConsumerRecord<String, byte[]> record,
+                                                SwimlaneBasedDispatcher swimlaneBasedDispatcher,
+                                                BiConsumer<Void, Throwable> callback,
+                                                ReactiveKafkaMessageHandler handler) {
+    return eventuateKafkaMultiMessageConverter
+            .convertBytesToMessages(record.value())
+            .getMessages()
+            .stream()
+            .map(EventuateKafkaMultiMessage::getValue)
+            .map(KafkaMessage::new)
+            .map(kafkaMessage ->
+                    swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.value()), record.partition(), message -> handle(message, callback, handler)))
+            .collect(Collectors.toList()) // it is not possible to use "findAny()" now, because streams are lazy and only one message will be processed
+            .stream()
+            .findAny()
+            .get();
+  }
+
+  private void handle(RawKafkaMessage message, BiConsumer<Void, Throwable> callback, ReactiveKafkaMessageHandler kafkaMessageHandler) {
     try {
-      if (eventuateKafkaMultiMessageConverter.isMultiMessage(message.getPayload())) {
-        eventuateKafkaMultiMessageConverter
-                .convertBytesToMessages(message.getPayload())
-                .getMessages()
-                .stream()
-                .map(EventuateKafkaMultiMessage::getValue)
-                .map(KafkaMessage::new)
-                .forEach(kafkaMessageHandler);
-      } else {
-        kafkaMessageHandler.accept(new KafkaMessage(EventuateBinaryMessageEncoding.bytesToString(message.getPayload())));
-      }
-      callback.accept(null, null);
+        kafkaMessageHandler
+                .apply(new KafkaMessage(EventuateBinaryMessageEncoding.bytesToString(message.getPayload())))
+                .whenComplete(callback);
     } catch (Throwable e) {
       callback.accept(null, e);
       throw e;
