@@ -93,7 +93,7 @@ workflows:
             docker buildx create tls-env --use
             docker run --privileged --rm tonistiigi/binfmt --install arm64,arm
             export DOCKER_HOST_NAME=$(hostname)
-            ./build-and-test-all.sh
+            ./build-and-test-all-locally.sh
       - build-and-test/build-and-test:
           name: build-and-test-mysql8-arm
           resource_class: arm.medium
@@ -105,7 +105,7 @@ workflows:
             hostname -I
             export DOCKER_HOST_NAME=$(hostname -I | sed -e 's/ .*//g')
             echo $DOCKER_HOST_NAME
-            ./build-and-test-all.sh
+            ./build-and-test-all-locally.sh
       - build-multi-arch-images:
           context:
             - publish
