@@ -70,7 +70,7 @@ jobs:
 
             docker run --privileged --rm tonistiigi/binfmt --install arm64,arm
 
-            ./kafka/build-docker-kafka-multi-arch.sh
+            ./build-multi-arch-images.sh
   deploy-multi-arch:
     docker:
       - image: cimg/base:stable
