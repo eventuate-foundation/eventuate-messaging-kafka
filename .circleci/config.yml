@@ -111,13 +111,14 @@ workflows:
             - publish
           requires:
             - build-and-test-arm-intel
+            - build-and-test-mysql8-arm
       - build-and-test/build-and-test:
-          name: test-mysql8-zookeeper-multi-arch-intel
+          name: test-multi-arch-intel
           script: ./build-and-test-all.sh
           requires:
             - build-multi-arch-images
       - build-and-test/build-and-test:
-          name: test-mysql8-zookeeper-multi-arch-arm
+          name: test-multi-arch-arm
           script: ./build-and-test-all.sh
           resource_class: arm.medium
           requires:
@@ -126,5 +127,5 @@ workflows:
           context:
             - publish
           requires:
-            - test-mysql8-zookeeper-multi-arch-intel
-            - test-mysql8-zookeeper-multi-arch-arm
+            - test-multi-arch-intel
+            - test-multi-arch-arm
