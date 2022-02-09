@@ -4,7 +4,6 @@ buildscript {
         maven {
           url "https://plugins.gradle.org/m2/"
         }
-        jcenter()
         eventuateMavenRepoUrl.split(',').each { repoUrl -> maven { url repoUrl } }
     }
     dependencies {
@@ -26,7 +25,6 @@ subprojects {
 
     repositories {
         mavenCentral()
-        jcenter()
         maven { url "https://repo.spring.io/milestone" }
         eventuateMavenRepoUrl.split(',').each { repoUrl -> maven { url repoUrl } }
     }
@@ -34,6 +32,8 @@ subprojects {
     dependencies {
         testCompile "junit:junit:4.12"
     }
+
+
 }
 
 gradle.projectsEvaluated {
@@ -48,6 +48,3 @@ gradle.projectsEvaluated {
 dockerCompose {
     projectName = null
 }
-
-
-

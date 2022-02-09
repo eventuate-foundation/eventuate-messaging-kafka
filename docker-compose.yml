@@ -1,13 +1,13 @@
 version: '3'
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:5.2.4
+    image: eventuateio/eventuate-zookeeper:wip-multi-arch-docker-part-3-circleci-buildx-554
     ports:
       - 2181:2181
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
   kafka:
-    image: "confluentinc/cp-kafka:5.2.4"
+    image: ${KAFKA_MULTI_ARCH_IMAGE:-localhost:5002/eventuate-kafka:multi-arch-local-build}
     ports:
       - 9092:9092
     depends_on:

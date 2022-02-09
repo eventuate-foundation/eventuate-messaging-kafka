@@ -1,40 +1,73 @@
 version: 2
-jobs:
-  build:
-    machine: true
-    working_directory: ~/eventuate-messaging-kafka
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - eventuate-messaging-kafka-{{ checksum "gradle.properties" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
-            - eventuate-messaging-kafka-
-      - run: TERM=dumb ./gradlew testClasses aggregateJavaDocs
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: eventuate-messaging-kafka-{{ checksum "gradle.properties" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
-      - run: TERM=dumb ./build-and-test-all.sh
-      - run:
-          name: Publish artifacts
-          command: |
-            TERM=dumb ./deploy-artifacts.sh
-          when: on_success
-      - run:
-          name: Save test results
-          command: |
-            TERM=dumb ./.circleci/save-containers-and-tests.sh
-          when: always
-      - store_test_results:
-          path: ~/junit
-      - store_artifacts:
-          path: ~/junit
-      - store_artifacts:
-          path: ~/container-logs
+orbs:
+  build-and-test:
+    jobs:
+      build-and-test:
+        parameters:
+          script:
+            description: the script to execute
+            type: string
+          resource_class:
+            description: the resource class
+            type: string
+            default: 'medium'
+          skip_multi_arch_env_vars:
+            description: if set don't set multi-arch env vars
+            type: string
+            default: ''
+        machine:
+          image: ubuntu-2004:202101-01
+        resource_class: <<parameters.resource_class>>
+        working_directory: ~/eventuate-messaging-kafka
+        steps:
+          - checkout
+          - restore_cache:
+              keys:
+                - eventuate-messaging-kafka-{{ checksum "gradle.properties" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+                - eventuate-messaging-kafka-
+          - run:
+              command: |
+                ./gradlew testClasses aggregateJavaDocs
+          - save_cache:
+              paths:
+                - ~/.gradle
+              key: eventuate-messaging-kafka-{{ checksum "gradle.properties" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+          - run:
+              command: |
+                if [ -z "<<parameters.skip_multi_arch_env_vars>>" ] ; then
+                  . set-multi-arch-image-env-vars.sh
+                fi
+                <<parameters.script>>
+          - run:
+              name: Save test results
+              command: ./.circleci/save-containers-and-tests.sh
+              when: always
+          - store_test_results:
+              path: ~/junit
+          - store_artifacts:
+              path: ~/junit
+          - store_artifacts:
+              path: ~/container-logs
 workflows:
   version: 2
   build-test-and-deploy:
     jobs:
-      - build:
-          context:
-            - publish
+      - build-and-test/build-and-test:
+          name: build-and-test-arm-intel
+          skip_multi_arch_env_vars: "true"
+          script: |
+            docker context create tls-env
+            docker buildx create tls-env --use
+            docker run --privileged --rm tonistiigi/binfmt --install arm64,arm
+            export DOCKER_HOST_NAME=$(hostname)
+            ./build-and-test-all.sh
+      - build-and-test/build-and-test:
+          name: build-and-test-mysql8-arm
+          resource_class: arm.medium
+          skip_multi_arch_env_vars: "true"
+          script: |
+            docker context create tls-env
+            docker buildx create tls-env --use
+            docker run --privileged --rm tonistiigi/binfmt --install amd64
+            export DOCKER_HOST_NAME=$(hostname)
+            ./build-and-test-all.sh
