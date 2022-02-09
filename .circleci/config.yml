@@ -48,6 +48,39 @@ orbs:
               path: ~/junit
           - store_artifacts:
               path: ~/container-logs
+jobs:
+  build-multi-arch-images:
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/eventuate-common
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.11
+      - run:
+          name: docker buildx build
+          command: |
+            . set-multi-arch-image-env-vars.sh
+            docker context create tls-env
+            docker buildx create tls-env --use
+
+            # failed to solve: process "/dev/.buildkit_qemu_emulator
+            # https://github.com/docker/buildx/issues/493#issuecomment-754834977
+            # https://github.com/tonistiigi/binfmt#installing-emulators
+
+            docker run --privileged --rm tonistiigi/binfmt --install arm64,arm
+
+            ./kafka/build-docker-kafka-multi-arch.sh
+  deploy-multi-arch:
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/eventuate-common
+    steps:
+      - checkout
+      - run:
+          command: |
+            . set-multi-arch-image-env-vars.sh
+            ./deploy-multi-arch.sh
 workflows:
   version: 2
   build-test-and-deploy:
@@ -69,6 +102,29 @@ workflows:
             docker context create tls-env
             docker buildx create tls-env --use
             docker run --privileged --rm tonistiigi/binfmt --install amd64
+            hostname -I
             export DOCKER_HOST_NAME=$(hostname -I | sed -e 's/ .*//g')
             echo $DOCKER_HOST_NAME
             ./build-and-test-all.sh
+      - build-multi-arch-images:
+          context:
+            - publish
+          requires:
+            - build-and-test-arm-intel
+      - build-and-test/build-and-test:
+          name: test-mysql8-zookeeper-multi-arch-intel
+          script: ./build-and-test-all.sh
+          requires:
+            - build-multi-arch-images
+      - build-and-test/build-and-test:
+          name: test-mysql8-zookeeper-multi-arch-arm
+          script: ./build-and-test-all.sh
+          resource_class: arm.medium
+          requires:
+            - build-multi-arch-images
+      - deploy-multi-arch:
+          context:
+            - publish
+          requires:
+            - test-mysql8-zookeeper-multi-arch-intel
+            - test-mysql8-zookeeper-multi-arch-arm
