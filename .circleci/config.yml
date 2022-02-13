@@ -81,7 +81,6 @@ jobs:
           command: |
             . set-multi-arch-image-env-vars.sh
             ./deploy-multi-arch.sh
-            ./deploy-artifacts.sh
 workflows:
   version: 2
   build-test-and-deploy:
@@ -125,6 +124,14 @@ workflows:
           requires:
             - build-multi-arch-images
       - deploy-multi-arch:
+          context:
+            - publish
+          requires:
+            - test-multi-arch-intel
+            - test-multi-arch-arm
+      - build-and-test/build-and-test:
+          name: deploy-artifacts
+          script: ./deploy-artifacts.sh
           context:
             - publish
           requires:
