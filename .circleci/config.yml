@@ -130,3 +130,11 @@ workflows:
           requires:
             - test-multi-arch-intel
             - test-multi-arch-arm
+      - build-and-test/build-and-test:
+          name: deploy-artifacts
+          script: ./deploy-artifacts.sh
+          context:
+            - publish
+          requires:
+            - test-multi-arch-intel
+            - test-multi-arch-arm
