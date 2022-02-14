@@ -86,7 +86,7 @@ workflows:
   build-test-and-deploy:
     jobs:
       - build-and-test/build-and-test:
-          name: build-and-test-arm-intel
+          name: build-and-test-intel
           skip_multi_arch_env_vars: "true"
           script: |
             docker context create tls-env
@@ -95,7 +95,7 @@ workflows:
             export DOCKER_HOST_NAME=$(hostname)
             ./build-and-test-all-locally.sh
       - build-and-test/build-and-test:
-          name: build-and-test-mysql8-arm
+          name: build-and-test-arm
           resource_class: arm.medium
           skip_multi_arch_env_vars: "true"
           script: |
@@ -110,8 +110,8 @@ workflows:
           context:
             - publish
           requires:
-            - build-and-test-arm-intel
-            - build-and-test-mysql8-arm
+            - build-and-test-intel
+            - build-and-test-arm
       - build-and-test/build-and-test:
           name: test-multi-arch-intel
           script: ./build-and-test-all.sh
