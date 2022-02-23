@@ -1,6 +1,6 @@
 FROM amazoncorretto:8u322-al2
 ENV KAFKA_VERSION=kafka_2.13-2.8.1
-RUN yum install -y wget tar gzip nc && \
+RUN yum install -y wget tar gzip nc gettext && \
   echo https://dlcdn.apache.org/kafka/3.0.0/${KAFKA_VERSION}.tgz && \
   (wget -q -O - https://dlcdn.apache.org/kafka/2.8.1/${KAFKA_VERSION}.tgz |  tar -xzf - -C /usr/local) && \
     yum clean all && \
