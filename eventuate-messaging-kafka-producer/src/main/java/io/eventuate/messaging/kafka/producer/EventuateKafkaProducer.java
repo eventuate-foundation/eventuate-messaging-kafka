@@ -7,6 +7,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
@@ -72,6 +73,6 @@ public class EventuateKafkaProducer {
   }
 
   public void close() {
-    producer.close(1, TimeUnit.SECONDS);
+    producer.close(Duration.ofSeconds(1));
   }
 }
