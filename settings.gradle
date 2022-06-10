@@ -1,3 +1,5 @@
+rootProject.name="eventuate-messaging-kafka"
+
 include 'eventuate-messaging-kafka-basic-consumer'
 include 'eventuate-messaging-kafka-spring-basic-consumer'
 include 'eventuate-messaging-kafka-micronaut-basic-consumer'
