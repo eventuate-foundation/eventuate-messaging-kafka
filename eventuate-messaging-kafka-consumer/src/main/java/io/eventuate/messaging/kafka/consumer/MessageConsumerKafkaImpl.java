@@ -96,10 +96,13 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
     try {
         kafkaMessageHandler
                 .apply(new KafkaMessage(EventuateBinaryMessageEncoding.bytesToString(message.getPayload())))
-                .whenComplete(callback);
-    } catch (Throwable e) {
+                .get();
+    } catch (RuntimeException e) {
       callback.accept(null, e);
       throw e;
+    } catch (Throwable e) {
+      callback.accept(null, e);
+      throw new RuntimeException(e);
     }
   }
 

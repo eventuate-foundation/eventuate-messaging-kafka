@@ -1,5 +1,7 @@
 version: 2.1
 orbs:
+  # eventuate-gradle-build-and-test: "eventuate_io/eventuate-gradle-build-and-test@0.2.1"
+  # Some features unsupported by above ORB e.g. set-multi-arch-image-env-vars.sh
   build-and-test:
     jobs:
       build-and-test:

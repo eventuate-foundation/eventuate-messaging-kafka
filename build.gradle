@@ -7,7 +7,7 @@ buildscript {
         eventuateMavenRepoUrl.split(',').each { repoUrl -> maven { url repoUrl } }
     }
     dependencies {
-        classpath "com.avast.gradle:gradle-docker-compose-plugin:0.13.2"
+        classpath "com.avast.gradle:gradle-docker-compose-plugin:0.12.0"
         classpath "io.eventuate.plugins.gradle:eventuate-plugins-gradle-publish:$eventuatePluginsGradleVersion"
     }
 }
@@ -29,11 +29,10 @@ subprojects {
         eventuateMavenRepoUrl.split(',').each { repoUrl -> maven { url repoUrl } }
     }
 
-    dependencies {
-        testCompile "junit:junit:4.12"
-    }
-
-
+    if (!project.name.endsWith("-bom"))
+        dependencies {
+            testCompile "junit:junit:4.12"
+        }
 }
 
 gradle.projectsEvaluated {
