@@ -1,5 +1,8 @@
 package io.eventuate.messaging.kafka.spring.consumer;
 
+import io.eventuate.messaging.kafka.consumer.OriginalTopicPartitionToSwimLaneMapping;
+import io.eventuate.messaging.kafka.consumer.TopicPartitionToSwimLaneMapping;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -13,10 +16,13 @@ import io.eventuate.messaging.kafka.spring.common.EventuateKafkaPropertiesConfig
 @Configuration
 @Import({EventuateKafkaPropertiesConfiguration.class, EventuateKafkaConsumerSpringConfigurationPropertiesConfiguration.class})
 public class MessageConsumerKafkaConfiguration {
+  @Autowired(required=false)
+  private TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping = new OriginalTopicPartitionToSwimLaneMapping();
+
   @Bean
   public MessageConsumerKafkaImpl messageConsumerKafka(EventuateKafkaConfigurationProperties props,
                                                        EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties,
                                                        KafkaConsumerFactory kafkaConsumerFactory) {
-    return new MessageConsumerKafkaImpl(props.getBootstrapServers(), eventuateKafkaConsumerConfigurationProperties, kafkaConsumerFactory);
+    return new MessageConsumerKafkaImpl(props.getBootstrapServers(), eventuateKafkaConsumerConfigurationProperties, kafkaConsumerFactory, partitionToSwimLaneMapping);
   }
 }

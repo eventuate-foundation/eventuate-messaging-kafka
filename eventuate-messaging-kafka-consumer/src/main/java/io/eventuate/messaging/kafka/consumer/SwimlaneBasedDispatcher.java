@@ -1,5 +1,6 @@
 package io.eventuate.messaging.kafka.consumer;
 
+import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,13 +16,16 @@ public class SwimlaneBasedDispatcher {
   private Executor executor;
   private String subscriberId;
 
-  public SwimlaneBasedDispatcher(String subscriberId, Executor executor) {
+  private TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping;
+
+  public SwimlaneBasedDispatcher(String subscriberId, Executor executor, TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping) {
     this.subscriberId = subscriberId;
     this.executor = executor;
+    this.partitionToSwimLaneMapping = partitionToSwimLaneMapping;
   }
 
-  public SwimlaneDispatcherBacklog dispatch(RawKafkaMessage message, Integer swimlane, Consumer<RawKafkaMessage> target) {
-    SwimlaneDispatcher swimlaneDispatcher = getOrCreate(swimlane);
+  public SwimlaneDispatcherBacklog dispatch(RawKafkaMessage message, TopicPartition topicPartition, Consumer<RawKafkaMessage> target) {
+    SwimlaneDispatcher swimlaneDispatcher = getOrCreate(partitionToSwimLaneMapping.toSwimLane(topicPartition));
     return swimlaneDispatcher.dispatch(message, target);
   }
 

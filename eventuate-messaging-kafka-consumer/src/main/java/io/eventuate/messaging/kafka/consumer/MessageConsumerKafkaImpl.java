@@ -9,6 +9,7 @@ import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessageConverter;
 import io.eventuate.messaging.kafka.common.EventuateKafkaMultiMessage;
 import io.eventuate.messaging.partitionmanagement.CommonMessageConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,13 +30,15 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
   private EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties;
   private KafkaConsumerFactory kafkaConsumerFactory;
   private EventuateKafkaMultiMessageConverter eventuateKafkaMultiMessageConverter = new EventuateKafkaMultiMessageConverter();
+  private TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping;
 
   public MessageConsumerKafkaImpl(String bootstrapServers,
                                   EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties,
-                                  KafkaConsumerFactory kafkaConsumerFactory) {
+                                  KafkaConsumerFactory kafkaConsumerFactory, TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping) {
     this.bootstrapServers = bootstrapServers;
     this.eventuateKafkaConsumerConfigurationProperties = eventuateKafkaConsumerConfigurationProperties;
     this.kafkaConsumerFactory = kafkaConsumerFactory;
+    this.partitionToSwimLaneMapping = partitionToSwimLaneMapping;
   }
 
   public KafkaSubscription subscribe(String subscriberId, Set<String> channels, KafkaMessageHandler handler) {
@@ -47,13 +50,13 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
   public KafkaSubscription subscribeWithReactiveHandler(String subscriberId, Set<String> channels, ReactiveKafkaMessageHandler handler) {
 
-    SwimlaneBasedDispatcher swimlaneBasedDispatcher = new SwimlaneBasedDispatcher(subscriberId, Executors.newCachedThreadPool());
+    SwimlaneBasedDispatcher swimlaneBasedDispatcher = new SwimlaneBasedDispatcher(subscriberId, Executors.newCachedThreadPool(), partitionToSwimLaneMapping);
 
     EventuateKafkaConsumerMessageHandler kcHandler = (record, callback) -> {
       if (eventuateKafkaMultiMessageConverter.isMultiMessage(record.value())) {
         return handleBatch(record, swimlaneBasedDispatcher, callback, handler);
       } else {
-        return swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.value()), record.partition(), message -> handle(message, callback, handler));
+        return swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.value()), new TopicPartition(record.topic(), record.partition()), message -> handle(message, callback, handler));
       }
     };
 
@@ -85,7 +88,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
             .map(EventuateKafkaMultiMessage::getValue)
             .map(KafkaMessage::new)
             .map(kafkaMessage ->
-                    swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.value()), record.partition(), message -> handle(message, callback, handler)))
+                    swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.value()), new TopicPartition(record.topic(), record.partition()), message -> handle(message, callback, handler)))
             .collect(Collectors.toList()) // it is not possible to use "findAny()" now, because streams are lazy and only one message will be processed
             .stream()
             .findAny()
