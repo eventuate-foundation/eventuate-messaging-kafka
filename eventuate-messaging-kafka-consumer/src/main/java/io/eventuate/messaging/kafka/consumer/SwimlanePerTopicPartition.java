@@ -9,7 +9,7 @@ public class SwimlanePerTopicPartition implements TopicPartitionToSwimLaneMappin
     private final ConcurrentHashMap<TopicPartition, Integer> mapping = new ConcurrentHashMap<>();
 
     @Override
-    public Integer toSwimLane(TopicPartition topicPartition) {
+    public Integer toSwimLane(TopicPartition topicPartition, String messageKey) {
         return mapping.computeIfAbsent(topicPartition, tp -> mapping.size());
     }
 }

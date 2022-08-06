@@ -10,13 +10,13 @@ import java.util.function.Consumer;
 
 public class SwimlaneBasedDispatcher {
 
-  private static Logger logger = LoggerFactory.getLogger(SwimlaneBasedDispatcher.class);
+  private static final Logger logger = LoggerFactory.getLogger(SwimlaneBasedDispatcher.class);
 
   private final ConcurrentHashMap<Integer, SwimlaneDispatcher> map = new ConcurrentHashMap<>();
-  private Executor executor;
-  private String subscriberId;
+  private final Executor executor;
+  private final String subscriberId;
 
-  private TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping;
+  private final TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping;
 
   public SwimlaneBasedDispatcher(String subscriberId, Executor executor, TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping) {
     this.subscriberId = subscriberId;
@@ -25,7 +25,7 @@ public class SwimlaneBasedDispatcher {
   }
 
   public SwimlaneDispatcherBacklog dispatch(RawKafkaMessage message, TopicPartition topicPartition, Consumer<RawKafkaMessage> target) {
-    SwimlaneDispatcher swimlaneDispatcher = getOrCreate(partitionToSwimLaneMapping.toSwimLane(topicPartition));
+    SwimlaneDispatcher swimlaneDispatcher = getOrCreate(partitionToSwimLaneMapping.toSwimLane(topicPartition, message.getMessageKey()));
     return swimlaneDispatcher.dispatch(message, target);
   }
 

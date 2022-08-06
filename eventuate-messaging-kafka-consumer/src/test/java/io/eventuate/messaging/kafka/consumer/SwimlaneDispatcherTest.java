@@ -60,7 +60,7 @@ public class SwimlaneDispatcherTest {
       if (i > 0) {
         Assert.assertTrue(swimlaneDispatcher.getRunning());
       }
-      swimlaneDispatcher.dispatch(new RawKafkaMessage(EventuateBinaryMessageEncoding.stringToBytes("")), handler);
+      swimlaneDispatcher.dispatch(new RawKafkaMessage("", EventuateBinaryMessageEncoding.stringToBytes("")), handler);
     }
   }
 

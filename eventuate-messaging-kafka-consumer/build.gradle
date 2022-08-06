@@ -4,6 +4,7 @@ dependencies {
     compile "io.eventuate.common.messaging:eventuate-messaging-partition-management:$eventuateMessagingPartitionManagementVersion"
 
     testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
+    testImplementation "org.assertj:assertj-core:$assertjVersion"
 }
 
 

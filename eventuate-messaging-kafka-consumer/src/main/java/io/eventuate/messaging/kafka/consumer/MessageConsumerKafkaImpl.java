@@ -56,7 +56,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
       if (eventuateKafkaMultiMessageConverter.isMultiMessage(record.value())) {
         return handleBatch(record, swimlaneBasedDispatcher, callback, handler);
       } else {
-        return swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.value()), new TopicPartition(record.topic(), record.partition()), message -> handle(message, callback, handler));
+        return swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.key(), record.value()), new TopicPartition(record.topic(), record.partition()), message -> handle(message, callback, handler));
       }
     };
 
@@ -88,7 +88,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
             .map(EventuateKafkaMultiMessage::getValue)
             .map(KafkaMessage::new)
             .map(kafkaMessage ->
-                    swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.value()), new TopicPartition(record.topic(), record.partition()), message -> handle(message, callback, handler)))
+                    swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.key(), record.value()), new TopicPartition(record.topic(), record.partition()), message -> handle(message, callback, handler)))
             .collect(Collectors.toList()) // it is not possible to use "findAny()" now, because streams are lazy and only one message will be processed
             .stream()
             .findAny()
