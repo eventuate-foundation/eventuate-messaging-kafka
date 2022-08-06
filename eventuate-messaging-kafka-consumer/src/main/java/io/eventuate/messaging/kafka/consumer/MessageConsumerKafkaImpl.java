@@ -21,20 +21,20 @@ import java.util.stream.Collectors;
 
 public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
 
-  private Logger logger = LoggerFactory.getLogger(getClass());
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final String id = UUID.randomUUID().toString();
 
-  private String bootstrapServers;
-  private List<EventuateKafkaConsumer> consumers = new ArrayList<>();
-  private EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties;
-  private KafkaConsumerFactory kafkaConsumerFactory;
-  private EventuateKafkaMultiMessageConverter eventuateKafkaMultiMessageConverter = new EventuateKafkaMultiMessageConverter();
-  private TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping;
+  private final String bootstrapServers;
+  private final List<EventuateKafkaConsumer> consumers = new ArrayList<>();
+  private final EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties;
+  private final KafkaConsumerFactory kafkaConsumerFactory;
+  private final EventuateKafkaMultiMessageConverter eventuateKafkaMultiMessageConverter = new EventuateKafkaMultiMessageConverter();
+  private final TopicPartitionToSwimlaneMapping partitionToSwimLaneMapping;
 
   public MessageConsumerKafkaImpl(String bootstrapServers,
                                   EventuateKafkaConsumerConfigurationProperties eventuateKafkaConsumerConfigurationProperties,
-                                  KafkaConsumerFactory kafkaConsumerFactory, TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping) {
+                                  KafkaConsumerFactory kafkaConsumerFactory, TopicPartitionToSwimlaneMapping partitionToSwimLaneMapping) {
     this.bootstrapServers = bootstrapServers;
     this.eventuateKafkaConsumerConfigurationProperties = eventuateKafkaConsumerConfigurationProperties;
     this.kafkaConsumerFactory = kafkaConsumerFactory;

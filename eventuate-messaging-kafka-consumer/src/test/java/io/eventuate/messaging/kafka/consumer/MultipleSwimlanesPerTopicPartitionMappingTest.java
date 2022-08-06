@@ -20,7 +20,7 @@ public class MultipleSwimlanesPerTopicPartitionMappingTest {
     }
 
     private void assertSwimlaneWithinRange(MultipleSwimlanesPerTopicPartitionMapping mapping, TopicPartition topicPartition, String key, int minInclusive, int maxExclusive) {
-        assertThat(mapping.toSwimLane(topicPartition, key)).isGreaterThanOrEqualTo(minInclusive).isLessThan(maxExclusive);
+        assertThat(mapping.toSwimlane(topicPartition, key)).isGreaterThanOrEqualTo(minInclusive).isLessThan(maxExclusive);
     }
 
 

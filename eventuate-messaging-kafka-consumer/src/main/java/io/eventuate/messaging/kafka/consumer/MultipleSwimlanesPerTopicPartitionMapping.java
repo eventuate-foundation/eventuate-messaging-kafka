@@ -4,7 +4,7 @@ import org.apache.kafka.common.TopicPartition;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MultipleSwimlanesPerTopicPartitionMapping implements TopicPartitionToSwimLaneMapping {
+public class MultipleSwimlanesPerTopicPartitionMapping implements TopicPartitionToSwimlaneMapping {
 
     private final int swimlanesPerTopicPartition;
 
@@ -16,7 +16,7 @@ public class MultipleSwimlanesPerTopicPartitionMapping implements TopicPartition
 
 
     @Override
-    public Integer toSwimLane(TopicPartition topicPartition, String messageKey) {
+    public Integer toSwimlane(TopicPartition topicPartition, String messageKey) {
         int startingSwimlane = mapping.computeIfAbsent(topicPartition, tp -> mapping.size() * swimlanesPerTopicPartition);
         return startingSwimlane + messageKey.hashCode() % swimlanesPerTopicPartition;
     }

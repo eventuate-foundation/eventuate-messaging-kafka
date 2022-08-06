@@ -16,16 +16,16 @@ public class SwimlaneBasedDispatcher {
   private final Executor executor;
   private final String subscriberId;
 
-  private final TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping;
+  private final TopicPartitionToSwimlaneMapping partitionToSwimLaneMapping;
 
-  public SwimlaneBasedDispatcher(String subscriberId, Executor executor, TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping) {
+  public SwimlaneBasedDispatcher(String subscriberId, Executor executor, TopicPartitionToSwimlaneMapping partitionToSwimLaneMapping) {
     this.subscriberId = subscriberId;
     this.executor = executor;
     this.partitionToSwimLaneMapping = partitionToSwimLaneMapping;
   }
 
   public SwimlaneDispatcherBacklog dispatch(RawKafkaMessage message, TopicPartition topicPartition, Consumer<RawKafkaMessage> target) {
-    SwimlaneDispatcher swimlaneDispatcher = getOrCreate(partitionToSwimLaneMapping.toSwimLane(topicPartition, message.getMessageKey()));
+    SwimlaneDispatcher swimlaneDispatcher = getOrCreate(partitionToSwimLaneMapping.toSwimlane(topicPartition, message.getMessageKey()));
     return swimlaneDispatcher.dispatch(message, target);
   }
 

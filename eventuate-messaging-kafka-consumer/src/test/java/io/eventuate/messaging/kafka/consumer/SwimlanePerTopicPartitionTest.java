@@ -10,9 +10,9 @@ public class SwimlanePerTopicPartitionTest {
     @Test
     public void shouldComputeSwimlane() {
         SwimlanePerTopicPartition mapping =  new SwimlanePerTopicPartition();
-        assertEquals(Integer.valueOf(0), mapping.toSwimLane(tp0(), "X"));
-        assertEquals(Integer.valueOf(0), mapping.toSwimLane(tp0(), "Y"));
-        assertEquals(Integer.valueOf(1), mapping.toSwimLane(tp1(), "Z"));
+        assertEquals(Integer.valueOf(0), mapping.toSwimlane(tp0(), "X"));
+        assertEquals(Integer.valueOf(0), mapping.toSwimlane(tp0(), "Y"));
+        assertEquals(Integer.valueOf(1), mapping.toSwimlane(tp1(), "Z"));
     }
 
     private TopicPartition tp1() {

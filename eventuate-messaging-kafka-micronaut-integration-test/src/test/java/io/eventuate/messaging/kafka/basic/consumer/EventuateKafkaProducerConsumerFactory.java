@@ -2,8 +2,8 @@ package io.eventuate.messaging.kafka.basic.consumer;
 
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
 import io.eventuate.messaging.kafka.consumer.MessageConsumerKafkaImpl;
-import io.eventuate.messaging.kafka.consumer.OriginalTopicPartitionToSwimLaneMapping;
-import io.eventuate.messaging.kafka.consumer.TopicPartitionToSwimLaneMapping;
+import io.eventuate.messaging.kafka.consumer.OriginalTopicPartitionToSwimlaneMapping;
+import io.eventuate.messaging.kafka.consumer.TopicPartitionToSwimlaneMapping;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
 import io.micronaut.context.annotation.Factory;
@@ -12,7 +12,7 @@ import javax.inject.Singleton;
 
 @Factory
 public class EventuateKafkaProducerConsumerFactory {
-  private TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping = new OriginalTopicPartitionToSwimLaneMapping();
+  private final TopicPartitionToSwimlaneMapping partitionToSwimLaneMapping = new OriginalTopicPartitionToSwimlaneMapping();
 
   @Singleton
   public EventuateKafkaProducer producer(EventuateKafkaConfigurationProperties kafkaProperties, EventuateKafkaProducerConfigurationProperties producerProperties) {

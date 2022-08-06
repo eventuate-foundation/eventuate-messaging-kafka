@@ -5,8 +5,8 @@ import io.eventuate.messaging.kafka.basic.consumer.DefaultKafkaConsumerFactory;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
 import io.eventuate.messaging.kafka.basic.consumer.KafkaConsumerFactory;
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
-import io.eventuate.messaging.kafka.consumer.OriginalTopicPartitionToSwimLaneMapping;
-import io.eventuate.messaging.kafka.consumer.TopicPartitionToSwimLaneMapping;
+import io.eventuate.messaging.kafka.consumer.OriginalTopicPartitionToSwimlaneMapping;
+import io.eventuate.messaging.kafka.consumer.TopicPartitionToSwimlaneMapping;
 import io.eventuate.messaging.kafka.spring.common.EventuateKafkaPropertiesConfiguration;
 import io.eventuate.messaging.kafka.consumer.MessageConsumerKafkaImpl;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
@@ -35,7 +35,7 @@ public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafk
   public static class EventuateKafkaConsumerTestConfiguration {
 
     @Autowired(required=false)
-    private TopicPartitionToSwimLaneMapping partitionToSwimLaneMapping = new OriginalTopicPartitionToSwimLaneMapping();
+    private TopicPartitionToSwimlaneMapping partitionToSwimLaneMapping = new OriginalTopicPartitionToSwimlaneMapping();
 
     @Bean
     public EventuateKafkaProducer producer(EventuateKafkaConfigurationProperties kafkaProperties,
