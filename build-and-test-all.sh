@@ -11,6 +11,6 @@ docker="./gradlew compose"
 ${docker}Down
 ${docker}Up
 
-./gradlew $GRADLE_OPTIONS cleanTest build $GRADLE_TASK_OPTIONS
+./gradlew $GRADLE_OPTIONS build $GRADLE_TASK_OPTIONS
 
 ${docker}Down

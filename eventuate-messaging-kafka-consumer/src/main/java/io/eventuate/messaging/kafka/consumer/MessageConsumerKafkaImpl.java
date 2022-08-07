@@ -89,9 +89,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
             .map(KafkaMessage::new)
             .map(kafkaMessage ->
                     swimlaneBasedDispatcher.dispatch(new RawKafkaMessage(record.key(), record.value()), new TopicPartition(record.topic(), record.partition()), message -> handle(message, callback, handler)))
-            .collect(Collectors.toList()) // it is not possible to use "findAny()" now, because streams are lazy and only one message will be processed
-            .stream()
-            .findAny()
+            .reduce((first, second) -> second)
             .get();
   }
 
