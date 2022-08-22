@@ -105,6 +105,7 @@ public class MessageConsumerKafkaImpl implements CommonMessageConsumer {
       callback.accept(null, e);
       throw new RuntimeException(e);
     }
+    callback.accept(null, null);
   }
 
   @Override

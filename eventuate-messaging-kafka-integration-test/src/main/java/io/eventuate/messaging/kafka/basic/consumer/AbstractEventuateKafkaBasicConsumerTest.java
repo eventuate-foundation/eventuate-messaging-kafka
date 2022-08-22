@@ -34,7 +34,7 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
 
   protected abstract KafkaConsumerFactory getKafkaConsumerFactory();
 
-  private KafkaMessageHandler handler;
+  protected KafkaMessageHandler handler;
 
   public void shouldStopWhenHandlerThrowsException() {
     String subscriberId = "subscriber-" + System.currentTimeMillis();
@@ -61,9 +61,7 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
 
     KafkaSubscription subscription = getConsumer().subscribe(subscriberId, Collections.singleton(topic), handler);
 
-    Eventually.eventually(() -> {
-      verify(handler, atLeastOnce()).accept(any());
-    });
+    Eventually.eventually(() -> verify(handler, atLeastOnce()).accept(any()));
 
     subscription.close();
 
@@ -88,13 +86,12 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
 
     KafkaSubscription subscription = getConsumer().subscribe(subscriberId, Collections.singleton(topic), handler);
 
-    Eventually.eventually(() -> {
-      assertEquals(200, messages.size());
-    });
+    Eventually.eventually(() -> assertEquals(200, messages.size()));
 
     subscription.close();
 
   }
+
 
   public void shouldConsumeBatchOfMessage() {
     String subscriberId = "subscriber-" + System.currentTimeMillis();
@@ -109,9 +106,7 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
 
     KafkaSubscription subscription = getConsumer().subscribe(subscriberId, Collections.singleton(topic), handler);
 
-    Eventually.eventually(() -> {
-      verify(handler, times(3)).accept(any());
-    });
+    Eventually.eventually(() -> verify(handler, times(3)).accept(any()));
 
     subscription.close();
   }
@@ -128,7 +123,7 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
     return consumer;
   }
 
-  private void sendMessages(String topic) {
+  protected void sendMessages(String topic) {
     getProducer().send(topic, "1", "a");
     getProducer().send(topic, "1", "b");
   }
@@ -148,9 +143,7 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
   }
 
   private void assertConsumerStopped(EventuateKafkaConsumer consumer) {
-    Eventually.eventually(() -> {
-      assertEquals(EventuateKafkaConsumerState.MESSAGE_HANDLING_FAILED, consumer.getState());
-    });
+    Eventually.eventually(() -> assertEquals(EventuateKafkaConsumerState.MESSAGE_HANDLING_FAILED, consumer.getState()));
   }
 
 }

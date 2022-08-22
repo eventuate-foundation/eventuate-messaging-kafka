@@ -5,13 +5,12 @@ import io.eventuate.messaging.kafka.basic.consumer.DefaultKafkaConsumerFactory;
 import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
 import io.eventuate.messaging.kafka.basic.consumer.KafkaConsumerFactory;
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
-import io.eventuate.messaging.kafka.consumer.OriginalTopicPartitionToSwimlaneMapping;
-import io.eventuate.messaging.kafka.consumer.TopicPartitionToSwimlaneMapping;
+import io.eventuate.messaging.kafka.consumer.*;
 import io.eventuate.messaging.kafka.spring.common.EventuateKafkaPropertiesConfiguration;
-import io.eventuate.messaging.kafka.consumer.MessageConsumerKafkaImpl;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
 import io.eventuate.messaging.kafka.spring.producer.EventuateKafkaProducerSpringConfigurationPropertiesConfiguration;
+import io.eventuate.util.test.async.Eventually;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +20,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.Collections;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = EventuateKafkaBasicConsumerSpringTest.EventuateKafkaConsumerTestConfiguration.class,
@@ -119,4 +125,39 @@ public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafk
   protected KafkaConsumerFactory getKafkaConsumerFactory() {
     return kafkaConsumerFactory;
   }
+
+  @Test
+  public void shouldSaveOffsets() throws InterruptedException {
+    String subscriberId = "subscriber-" + System.currentTimeMillis();
+    String topic = "topic-" + System.currentTimeMillis();
+    LinkedBlockingQueue<KafkaMessage> messages = new LinkedBlockingQueue<>();
+
+    sendMessages(topic);
+
+    handler = kafkaMessage -> {
+      try {
+        TimeUnit.MILLISECONDS.sleep(20);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      messages.add(kafkaMessage);
+    };
+
+    KafkaSubscription subscription = getConsumer().subscribe(subscriberId, Collections.singleton(topic), handler);
+
+    Eventually.eventually(() -> {
+      assertEquals(2, messages.size());
+    });
+
+    subscription.close();
+
+    messages.clear();
+
+    subscription = getConsumer().subscribe(subscriberId, Collections.singleton(topic), handler);
+    TimeUnit.SECONDS.sleep(10);
+
+    assertThat(messages).isEmpty();
+
+  }
+
 }
