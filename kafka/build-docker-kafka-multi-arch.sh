@@ -16,4 +16,10 @@ docker buildx build --platform linux/amd64,linux/arm64 \
   $OPTS \
   $SCRIPT_DIR
 
-docker pull localhost:5002/eventuate-kafka:multi-arch-local-build
+echo maybe pull
+
+if [ "$IMAGE" = "host.docker.internal:5002/eventuate-kafka:multi-arch-local-build" ] ; then
+  docker pull localhost:5002/eventuate-kafka:multi-arch-local-build
+else
+  echo not pulling "$IMAGE"
+fi
