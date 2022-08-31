@@ -22,7 +22,7 @@ public class OffsetTracker {
             .toString();
   }
 
-  TopicPartitionOffsets fetch(TopicPartition topicPartition) {
+   private TopicPartitionOffsets fetch(TopicPartition topicPartition) {
     TopicPartitionOffsets tpo = state.get(topicPartition);
     if (tpo == null) {
       tpo = new TopicPartitionOffsets();
@@ -38,19 +38,16 @@ public class OffsetTracker {
     fetch(topicPartition).noteProcessed(offset);
   }
 
+  private final int OFFSET_ADJUSTMENT = 1;
   public Map<TopicPartition, OffsetAndMetadata> offsetsToCommit() {
     Map<TopicPartition, OffsetAndMetadata> result = new HashMap<>();
-    state.forEach((tp, tpo) -> {
-      tpo.offsetToCommit().ifPresent(offset -> {
-        result.put(tp, new OffsetAndMetadata(offset + 1, ""));
-      });
-    });
+    state.forEach((tp, tpo) -> tpo.offsetToCommit().ifPresent(offset -> result.put(tp, new OffsetAndMetadata(offset + OFFSET_ADJUSTMENT, ""))));
     return result;
   }
 
   public void noteOffsetsCommitted(Map<TopicPartition, OffsetAndMetadata> offsetsToCommit) {
     offsetsToCommit.forEach((tp, om) -> {
-      fetch(tp).noteOffsetCommitted(om.offset());
+      fetch(tp).noteOffsetCommitted(om.offset() - OFFSET_ADJUSTMENT);
     });
   }
 

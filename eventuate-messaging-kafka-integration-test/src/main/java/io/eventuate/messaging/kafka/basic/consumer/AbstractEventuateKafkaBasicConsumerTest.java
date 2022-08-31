@@ -13,13 +13,13 @@ import io.eventuate.util.test.async.Eventually;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 public abstract class AbstractEventuateKafkaBasicConsumerTest {
@@ -54,14 +54,25 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
   public void shouldConsumeMessages() {
     String subscriberId = "subscriber-" + System.currentTimeMillis();
     String topic = "topic-" + System.currentTimeMillis();
+    LinkedBlockingQueue<KafkaMessage> messages = new LinkedBlockingQueue<>();
 
-    sendMessages(topic);
+    for (int i = 0; i < 100; i++)
+      sendMessages(topic);
 
-    handler = mock(KafkaMessageHandler.class);
+    handler = kafkaMessage -> {
+      try {
+        TimeUnit.MILLISECONDS.sleep(20);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      messages.add(kafkaMessage);
+    };
 
     KafkaSubscription subscription = getConsumer().subscribe(subscriberId, Collections.singleton(topic), handler);
 
-    Eventually.eventually(() -> verify(handler, atLeastOnce()).accept(any()));
+    Eventually.eventually(() -> {
+      assertEquals(200, messages.size());
+    });
 
     subscription.close();
 
@@ -123,9 +134,9 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
     return consumer;
   }
 
-  protected void sendMessages(String topic) {
-    getProducer().send(topic, "1", "a");
-    getProducer().send(topic, "1", "b");
+    protected void sendMessages(String topic) {
+    for (int i = 0 ; i < 2 ; i++)
+      getProducer().send(topic, UUID.randomUUID().toString(), "body" + i);
   }
 
   private void assertHandlerInvokedAtLeastOnce(EventuateKafkaConsumerMessageHandler handler) {

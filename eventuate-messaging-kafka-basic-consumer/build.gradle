@@ -1,6 +1,9 @@
 
 dependencies {
     compile project (':eventuate-messaging-kafka-common')
+
+    testImplementation "org.assertj:assertj-core:$assertjVersion"
+
 }
 
 test {

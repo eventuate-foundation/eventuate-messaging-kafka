@@ -1,0 +1,19 @@
+dependencies {
+    implementation "io.eventuate.common:eventuate-common-testcontainers:$eventuateCommonVersion"
+    implementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+
+    implementation "org.testcontainers:testcontainers:$testContainersVersion"
+    implementation "org.assertj:assertj-core:$assertjVersion"
+
+    testImplementation project(":eventuate-messaging-kafka-spring-consumer")
+
+
+}
+
+task writeProperties(type: WriteProperties) {
+    outputFile "${project.buildDir}/generated/eventuate.messaging.kafka.version.properties"
+    property 'version', version
+}
+
+
+processResources.from(writeProperties)

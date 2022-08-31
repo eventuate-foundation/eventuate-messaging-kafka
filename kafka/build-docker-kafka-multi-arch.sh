@@ -15,3 +15,5 @@ docker buildx build --platform linux/amd64,linux/arm64 \
   -f $SCRIPT_DIR/Dockerfile \
   $OPTS \
   $SCRIPT_DIR
+
+docker pull localhost:5002/eventuate-kafka:multi-arch-local-build

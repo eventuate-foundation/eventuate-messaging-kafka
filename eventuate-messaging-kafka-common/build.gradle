@@ -2,9 +2,11 @@ apply plugin: SbeToolPlugin
 
 dependencies {
     compile 'commons-lang:commons-lang:2.6'
-    compile 'org.apache.kafka:kafka-clients:2.3.0'
+    compile "org.apache.kafka:kafka-clients:$kafkaClientVersion"
 
     compile 'uk.co.real-logic:sbe-all:1.15.0'
+
+    compile "org.slf4j:slf4j-api"
 
     testCompile "org.hamcrest:hamcrest-library:1.3"
 }

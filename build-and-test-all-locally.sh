@@ -1,7 +1,7 @@
 #! /bin/bash -e
 
-./kafka/build-docker-kafka-multi-arch.sh
+./gradlew testClasses
 
-docker pull localhost:5002/eventuate-kafka:multi-arch-local-build
+./kafka/build-docker-kafka-multi-arch.sh
 
 ./build-and-test-all.sh

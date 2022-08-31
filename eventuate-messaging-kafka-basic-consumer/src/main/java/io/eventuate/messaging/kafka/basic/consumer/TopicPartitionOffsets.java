@@ -41,19 +41,19 @@ public class TopicPartitionOffsets {
    * @return large of all offsets that have been processed and can be committed
    */
   Optional<Long> offsetToCommit() {
-    Optional<Long> result = Optional.empty();
+    Long result = null;
     for (long x : unprocessed) {
       if (processed.contains(x))
-        result = Optional.of(x);
+        result = x;
       else
         break;
     }
-    return result;
+    return Optional.ofNullable(result);
   }
 
   public void noteOffsetCommitted(long offset) {
-    unprocessed = new TreeSet<>(unprocessed.stream().filter(x -> x >= offset).collect(Collectors.toList()));
-    processed = processed.stream().filter(x -> x >= offset).collect(Collectors.toSet());
+    unprocessed = new TreeSet<>(unprocessed.stream().filter(x -> x > offset).collect(Collectors.toList()));
+    processed = processed.stream().filter(x -> x > offset).collect(Collectors.toSet());
   }
 
   public Set<Long> getPending() {

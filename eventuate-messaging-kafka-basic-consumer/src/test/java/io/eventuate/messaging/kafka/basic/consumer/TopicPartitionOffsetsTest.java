@@ -2,6 +2,8 @@ package io.eventuate.messaging.kafka.basic.consumer;
 
 import org.junit.Test;
 
+import java.util.Optional;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -22,11 +24,19 @@ public class TopicPartitionOffsetsTest  {
 
     tpo.noteProcessed(1);
 
-    assertEquals(new Long(2), tpo.offsetToCommit().get());
+    assertEquals(Long.valueOf(2L), tpo.offsetToCommit().get());
+
+    tpo.noteOffsetCommitted(2);
+
+    assertEquals(Optional.empty(), tpo.offsetToCommit());
 
     tpo.noteProcessed(3);
 
-    assertEquals(new Long(3), tpo.offsetToCommit().get());
+    assertEquals(Long.valueOf(3), tpo.offsetToCommit().get());
+
+    tpo.noteOffsetCommitted(3);
+
+    assertEquals(Optional.empty(), tpo.offsetToCommit());
   }
 
 

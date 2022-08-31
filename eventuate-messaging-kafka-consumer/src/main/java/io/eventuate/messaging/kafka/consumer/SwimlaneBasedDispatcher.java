@@ -25,7 +25,9 @@ public class SwimlaneBasedDispatcher {
   }
 
   public SwimlaneDispatcherBacklog dispatch(RawKafkaMessage message, TopicPartition topicPartition, Consumer<RawKafkaMessage> target) {
-    SwimlaneDispatcher swimlaneDispatcher = getOrCreate(partitionToSwimLaneMapping.toSwimlane(topicPartition, message.getMessageKey()));
+    Integer swimlane = partitionToSwimLaneMapping.toSwimlane(topicPartition, message.getMessageKey());
+    logger.trace("Dispatching to swimlane {} for {}", swimlane, message);
+    SwimlaneDispatcher swimlaneDispatcher = getOrCreate(swimlane);
     return swimlaneDispatcher.dispatch(message, target);
   }
 

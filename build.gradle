@@ -31,6 +31,11 @@ subprojects {
 
     if (!project.name.endsWith("-bom"))
         dependencies {
+            if (!project.name.contains("micronaut"))
+                implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion")) {
+                    exclude group: 'org.apache.kafka'
+                    exclude group: 'ch.qos.logback'
+                }
             testCompile "junit:junit:4.12"
         }
 }
