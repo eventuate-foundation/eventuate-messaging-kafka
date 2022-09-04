@@ -6,7 +6,7 @@ dependencies {
     compile project (':eventuate-messaging-kafka-producer')
 
     compile 'junit:junit:4.13.1'
-    compile "org.mockito:mockito-core"
+    compile "org.mockito:mockito-core:4.7.0"
     compile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
     compile "org.assertj:assertj-core:3.23.1"
 
