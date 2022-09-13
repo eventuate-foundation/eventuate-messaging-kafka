@@ -6,7 +6,7 @@ dependencies {
 
     compile 'uk.co.real-logic:sbe-all:1.15.0'
 
-    compile "org.slf4j:slf4j-api"
+    compile "org.slf4j:slf4j-api:$slf4jVersion"
 
     testCompile "org.hamcrest:hamcrest-library:1.3"
 }
