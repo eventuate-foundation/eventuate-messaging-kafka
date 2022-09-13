@@ -14,21 +14,16 @@ import java.util.concurrent.CompletableFuture;
 
 public class EventuateKafkaProducer {
 
-  private Producer<String, byte[]> producer;
-  private Properties producerProps;
-  private StringSerializer stringSerializer = new StringSerializer();
-  private EventuateKafkaPartitioner eventuateKafkaPartitioner = new EventuateKafkaPartitioner();
+  private final Producer<String, byte[]> producer;
+  private final StringSerializer stringSerializer = new StringSerializer();
+  private final EventuateKafkaPartitioner eventuateKafkaPartitioner = new EventuateKafkaPartitioner();
 
   public EventuateKafkaProducer(String bootstrapServers,
                                 EventuateKafkaProducerConfigurationProperties eventuateKafkaProducerConfigurationProperties) {
 
-    producerProps = new Properties();
+    Properties producerProps = new Properties();
     producerProps.put("bootstrap.servers", bootstrapServers);
-    producerProps.put("acks", "all");
-    producerProps.put("retries", 0);
-    producerProps.put("batch.size", 16384);
-    producerProps.put("linger.ms", 1);
-    producerProps.put("buffer.memory", 33554432);
+    producerProps.put("enable.idempotence", "true");
     producerProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     producerProps.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
     producerProps.putAll(eventuateKafkaProducerConfigurationProperties.getProperties());

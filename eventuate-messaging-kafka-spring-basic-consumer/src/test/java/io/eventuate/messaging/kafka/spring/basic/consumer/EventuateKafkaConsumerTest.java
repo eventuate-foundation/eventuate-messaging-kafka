@@ -1,11 +1,6 @@
 package io.eventuate.messaging.kafka.spring.basic.consumer;
 
-import io.eventuate.messaging.kafka.basic.consumer.ConsumerCallbacks;
-import io.eventuate.messaging.kafka.basic.consumer.DefaultKafkaConsumerFactory;
-import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumer;
-import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerConfigurationProperties;
-import io.eventuate.messaging.kafka.basic.consumer.EventuateKafkaConsumerMessageHandler;
-import io.eventuate.messaging.kafka.basic.consumer.KafkaConsumerFactory;
+import io.eventuate.messaging.kafka.basic.consumer.*;
 import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
@@ -30,7 +25,11 @@ import org.springframework.util.StreamUtils;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -311,7 +310,11 @@ public class EventuateKafkaConsumerTest {
   }
 
   private void sendMessage(String value) {
-    eventuateKafkaProducer.send(topic, "test-key", value);
+    try {
+      eventuateKafkaProducer.send(topic, "test-key", value).get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private EventuateKafkaConsumer createConsumer(EventuateKafkaConsumerMessageHandler handler) {

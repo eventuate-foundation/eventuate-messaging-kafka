@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -135,8 +136,13 @@ public abstract class AbstractEventuateKafkaBasicConsumerTest {
   }
 
     protected void sendMessages(String topic) {
-    for (int i = 0 ; i < 2 ; i++)
-      getProducer().send(topic, UUID.randomUUID().toString(), "body" + i);
+    for (int i = 0 ; i < 2 ; i++) {
+      try {
+        getProducer().send(topic, UUID.randomUUID().toString(), "body" + i).get();
+      } catch (InterruptedException | ExecutionException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   private void assertHandlerInvokedAtLeastOnce(EventuateKafkaConsumerMessageHandler handler) {
