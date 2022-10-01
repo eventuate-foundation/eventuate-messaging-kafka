@@ -36,6 +36,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
@@ -216,7 +218,9 @@ public class EventuateKafkaConsumerTest {
     Process p = Runtime.getRuntime().exec(command);
 
     try {
-      p.waitFor(30, TimeUnit.SECONDS);
+      assertTrue(p.waitFor(30, TimeUnit.SECONDS));
+
+      assertEquals(0, p.exitValue());
 
       String output = StreamUtils.copyToString(p.getInputStream(), Charset.defaultCharset());
       String errors = StreamUtils.copyToString(p.getErrorStream(), Charset.defaultCharset());
@@ -233,6 +237,7 @@ public class EventuateKafkaConsumerTest {
     Eventually.eventually(60, 500, TimeUnit.MILLISECONDS, () -> {
       String host = getKafkaHost();
       try (Socket ignored = new Socket(host, getKafkaPort())) {
+        // do nothing
       } catch (IOException e) {
         throw new RuntimeException("Can't connect to host: " + host, e);
       }
