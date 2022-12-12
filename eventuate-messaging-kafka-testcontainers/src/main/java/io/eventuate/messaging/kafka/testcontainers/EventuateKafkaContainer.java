@@ -2,8 +2,8 @@ package io.eventuate.messaging.kafka.testcontainers;
 
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import io.eventuate.common.testcontainers.ContainerUtil;
+import io.eventuate.common.testcontainers.EventuateGenericContainer;
 import io.eventuate.common.testcontainers.PropertyProvidingContainer;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.images.builder.ImageFromDockerfile;
 
 import java.io.IOException;
@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class EventuateKafkaContainer extends GenericContainer<EventuateKafkaContainer> implements PropertyProvidingContainer {
+public class EventuateKafkaContainer extends EventuateGenericContainer<EventuateKafkaContainer> implements PropertyProvidingContainer {
 
     private final String zookeeperConnect;
 
@@ -19,6 +19,11 @@ public class EventuateKafkaContainer extends GenericContainer<EventuateKafkaCont
         super(ContainerUtil.findImage("eventuateio/eventuate-kafka", "eventuate.messaging.kafka.version.properties"));
         this.zookeeperConnect = zookeeperConnect;
         withConfiguration();
+    }
+
+    @Override
+    protected int getPort() {
+        return 29092;
     }
 
     public EventuateKafkaContainer(Path path, String zookeeperConnect) {
