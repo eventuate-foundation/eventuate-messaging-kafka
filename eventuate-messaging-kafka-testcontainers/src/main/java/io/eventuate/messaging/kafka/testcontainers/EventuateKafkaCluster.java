@@ -13,7 +13,11 @@ public class EventuateKafkaCluster {
     public final EventuateKafkaContainer kafka;
 
     public EventuateKafkaCluster() {
-        network = ReusableNetworkFactory.createNetwork("foofoo");
+        this("foofoo");
+    }
+
+    public EventuateKafkaCluster(String name) {
+        network = ReusableNetworkFactory.createNetwork(name);
         zookeeper = new EventuateZookeeperContainer().withReuse(true)
                 .withNetwork(network)
                 .withNetworkAliases("zookeeper")
