@@ -1,6 +1,7 @@
 package io.eventuate.messaging.kafka.testcontainers;
 
 import io.eventuate.common.testcontainers.EventuateZookeeperContainer;
+import io.eventuate.common.testcontainers.ReusableNetworkFactory;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 
