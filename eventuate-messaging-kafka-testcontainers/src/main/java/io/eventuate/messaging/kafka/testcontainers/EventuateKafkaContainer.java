@@ -4,9 +4,12 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import io.eventuate.common.testcontainers.ContainerUtil;
 import io.eventuate.common.testcontainers.EventuateGenericContainer;
 import io.eventuate.common.testcontainers.PropertyProvidingContainer;
+import org.jetbrains.annotations.NotNull;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.ImageFromDockerfile;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -19,6 +22,11 @@ public class EventuateKafkaContainer extends EventuateGenericContainer<Eventuate
         super(ContainerUtil.findImage("eventuateio/eventuate-kafka", "eventuate.messaging.kafka.version.properties"));
         this.zookeeperConnect = zookeeperConnect;
         withConfiguration();
+    }
+
+    @NotNull
+    static EventuateKafkaContainer makeFromDockerfile(String zookeeperConnect) {
+        return new EventuateKafkaContainer(FileSystems.getDefault().getPath("../kafka/Dockerfile"), zookeeperConnect);
     }
 
     @Override
@@ -41,6 +49,7 @@ public class EventuateKafkaContainer extends EventuateGenericContainer<Eventuate
         withEnv("KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS", "60000");
         withEnv("KAFKA_ZOOKEEPER_CONNECT", zookeeperConnect);
         withExposedPorts(9092);
+        waitingFor(Wait.forHealthcheck());
     }
 
     @Override

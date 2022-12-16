@@ -16,9 +16,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.wait.strategy.DockerHealthcheckWaitStrategy;
 
-import java.nio.file.FileSystems;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -33,8 +31,7 @@ public class EventuateKafkaContainerTest {
             .withNetworkAliases("zookeeper");
 
     public static EventuateKafkaContainer kafka =
-            new EventuateKafkaContainer(FileSystems.getDefault().getPath("../kafka/Dockerfile"), "zookeeper:2181")
-                    .waitingFor(new DockerHealthcheckWaitStrategy())
+            EventuateKafkaContainer.makeFromDockerfile(zookeeper.getConnectionString())
                     .withNetwork(network)
                     .withNetworkAliases("kafka")
                     .withReuse(true);

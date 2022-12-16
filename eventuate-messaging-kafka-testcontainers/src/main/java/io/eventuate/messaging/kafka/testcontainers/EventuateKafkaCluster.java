@@ -3,7 +3,6 @@ package io.eventuate.messaging.kafka.testcontainers;
 import io.eventuate.common.testcontainers.EventuateZookeeperContainer;
 import io.eventuate.common.testcontainers.ReusableNetworkFactory;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.wait.strategy.Wait;
 
 public class EventuateKafkaCluster {
 
@@ -17,14 +16,12 @@ public class EventuateKafkaCluster {
         this("foofoo");
     }
 
-    public EventuateKafkaCluster(String name) {
-        network = ReusableNetworkFactory.createNetwork(name);
+    public EventuateKafkaCluster(String networkName) {
+        network = ReusableNetworkFactory.createNetwork(networkName);
         zookeeper = new EventuateZookeeperContainer().withReuse(true)
                 .withNetwork(network)
-                .withNetworkAliases("zookeeper")
-                .waitingFor(Wait.forHealthcheck());
+                .withNetworkAliases("zookeeper");
         kafka = new EventuateKafkaContainer("zookeeper:2181")
-                .waitingFor(Wait.forHealthcheck())
                 .withNetwork(network)
                 .withNetworkAliases("kafka")
                 .withReuse(true);
