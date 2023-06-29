@@ -21,9 +21,14 @@ public class EventuateKafkaCluster {
         zookeeper = new EventuateZookeeperContainer().withReuse(true)
                 .withNetwork(network)
                 .withNetworkAliases("zookeeper");
-        kafka = new EventuateKafkaContainer("zookeeper:2181")
+        kafka = makeEventuateKafkaContainer()
+                .dependsOn(zookeeper)
                 .withNetwork(network)
                 .withNetworkAliases("kafka")
                 .withReuse(true);
+    }
+
+    protected EventuateKafkaContainer makeEventuateKafkaContainer() {
+        return new EventuateKafkaContainer("zookeeper:2181");
     }
 }
