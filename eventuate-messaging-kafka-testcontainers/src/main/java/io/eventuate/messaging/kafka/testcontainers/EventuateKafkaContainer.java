@@ -24,8 +24,14 @@ public class EventuateKafkaContainer extends EventuateGenericContainer<Eventuate
         withConfiguration();
     }
 
+    public EventuateKafkaContainer(String image, String zookeeperConnect) {
+        super(image);
+        this.zookeeperConnect = zookeeperConnect;
+        withConfiguration();
+    }
+
     @NotNull
-    static EventuateKafkaContainer makeFromDockerfile(String zookeeperConnect) {
+    public static EventuateKafkaContainer makeFromDockerfile(String zookeeperConnect) {
         return new EventuateKafkaContainer(FileSystems.getDefault().getPath("../kafka/Dockerfile"), zookeeperConnect);
     }
 

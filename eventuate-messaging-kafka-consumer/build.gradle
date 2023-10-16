@@ -1,7 +1,7 @@
 
 dependencies {
     compile project (":eventuate-messaging-kafka-basic-consumer")
-    compile "io.eventuate.common.messaging:eventuate-messaging-partition-management:$eventuateMessagingPartitionManagementVersion"
+    compile "io.eventuate.common.messaging:eventuate-messaging-partition-management:$eventuateCommonMessagingVersion"
 
     testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
     testImplementation "org.assertj:assertj-core:$assertjVersion"

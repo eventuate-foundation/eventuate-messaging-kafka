@@ -1,0 +1,20 @@
+
+dependencies {
+    implementation "io.eventuate.common:eventuate-common-coordination-leadership:$eventuateCommonVersion"
+    implementation "org.slf4j:slf4j-api:1.7.18"
+    implementation project(":eventuate-messaging-kafka-basic-consumer")
+
+    testImplementation project(":eventuate-messaging-kafka-spring-common")
+
+    testImplementation "io.eventuate.common:eventuate-common-coordination-leadership-tests:$eventuateCommonVersion"
+    testImplementation "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
+    testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+
+    testImplementation "io.eventuate.common:eventuate-common-testcontainers:$eventuateCommonVersion"
+    testImplementation project(":eventuate-messaging-kafka-testcontainers")
+    testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
+}
+
+test {
+    forkEvery 1
+}

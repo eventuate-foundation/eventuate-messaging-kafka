@@ -1,5 +1,6 @@
 package io.eventuate.messaging.kafka.basic.consumer;
 
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -47,6 +48,11 @@ public class DefaultKafkaMessageConsumer implements KafkaMessageConsumer {
   }
 
   @Override
+  public void subscribe(Collection<String> topics, ConsumerRebalanceListener callback) {
+    delegate.subscribe(topics, callback);
+  }
+
+  @Override
   public void commitOffsets(Map<TopicPartition, OffsetAndMetadata> offsets) {
     delegate.commitSync(offsets);
   }
@@ -80,4 +86,5 @@ public class DefaultKafkaMessageConsumer implements KafkaMessageConsumer {
   public void close(Duration duration) {
     delegate.close(duration);
   }
+
 }

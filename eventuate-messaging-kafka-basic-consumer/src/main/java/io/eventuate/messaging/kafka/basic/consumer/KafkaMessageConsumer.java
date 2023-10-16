@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.PartitionInfo;
@@ -36,4 +37,6 @@ public interface KafkaMessageConsumer {
   void close();
 
   void close(Duration duration);
+
+  void subscribe(Collection<String> topics, ConsumerRebalanceListener callback);
 }
