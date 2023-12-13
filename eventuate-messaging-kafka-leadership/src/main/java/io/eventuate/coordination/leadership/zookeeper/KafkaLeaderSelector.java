@@ -11,12 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -24,6 +19,7 @@ public class KafkaLeaderSelector implements EventuateLeaderSelector {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final KafkaConsumerFactory kafkaConsumerFactory;
+  private final Map<String, String> consumerProperties;
   private final String lockId;
   private final String leaderId;
   private final LeaderSelectedCallback leaderSelectedCallback;
@@ -40,18 +36,19 @@ public class KafkaLeaderSelector implements EventuateLeaderSelector {
                              Runnable leaderRemovedCallback,
                              String bootstrapServer, KafkaConsumerFactory kafkaConsumerFactory) {
 
-    this(lockId, UUID.randomUUID().toString(), leaderSelectedCallback, leaderRemovedCallback, bootstrapServer, kafkaConsumerFactory);
+    this(lockId, UUID.randomUUID().toString(), leaderSelectedCallback, leaderRemovedCallback, bootstrapServer, Collections.emptyMap(), kafkaConsumerFactory);
   }
 
   public KafkaLeaderSelector(String lockId,
                              String leaderId,
                              LeaderSelectedCallback leaderSelectedCallback,
-                             Runnable leaderRemovedCallback, String bootstrapServer, KafkaConsumerFactory kafkaConsumerFactory) {
+                             Runnable leaderRemovedCallback, String bootstrapServer, Map<String, String> consumerProperties, KafkaConsumerFactory kafkaConsumerFactory) {
     this.lockId = lockId;
     this.leaderId = leaderId;
     this.leaderSelectedCallback = leaderSelectedCallback;
     this.leaderRemovedCallback = leaderRemovedCallback;
     this.bootstrapServer = bootstrapServer;
+    this.consumerProperties = consumerProperties;
     this.kafkaConsumerFactory = kafkaConsumerFactory;
   }
 
@@ -60,8 +57,7 @@ public class KafkaLeaderSelector implements EventuateLeaderSelector {
     logger.info("Starting leader selector: {}", leaderId);
 
     Properties consumerProperties = ConsumerPropertiesFactory.makeDefaultConsumerProperties(bootstrapServer, lockId);
-    // Need to do something similar
-    //this.consumerProperties.putAll(eventuateKafkaConsumerConfigurationProperties.getProperties());
+    consumerProperties.putAll(this.consumerProperties);
 
     consumer = kafkaConsumerFactory.makeConsumer(lockId, consumerProperties);
 

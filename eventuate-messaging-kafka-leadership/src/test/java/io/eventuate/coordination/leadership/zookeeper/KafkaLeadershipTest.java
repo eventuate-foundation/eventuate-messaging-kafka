@@ -24,6 +24,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.testcontainers.containers.Network;
 
+import java.util.Collections;
 import java.util.UUID;
 
 @SpringBootTest(classes = KafkaLeadershipTest.Config.class)
@@ -83,6 +84,6 @@ public class KafkaLeadershipTest extends AbstractLeadershipTest<KafkaLeaderSelec
             leaderSelectedCallback,
             leaderRemovedCallback,
             eventuateKafkaConfigurationProperties.getBootstrapServers(),
-            kafkaConsumerFactory);
+            Collections.emptyMap(), kafkaConsumerFactory);
   }
 }
