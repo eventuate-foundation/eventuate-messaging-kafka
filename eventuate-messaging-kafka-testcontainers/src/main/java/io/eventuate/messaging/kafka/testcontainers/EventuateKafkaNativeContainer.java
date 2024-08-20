@@ -18,7 +18,7 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
 
     public EventuateKafkaNativeContainer() {
         super("apache/kafka-native");
-        withCommand("sh", "-c", "whoami && while [ ! -f " + STARTER_SCRIPT + " ]; do sleep 0.1; done; " + STARTER_SCRIPT);
+        withCommand("sh", "-c", "id && while [ ! -f " + STARTER_SCRIPT + " ]; do sleep 0.1; done; " + STARTER_SCRIPT);
 
     }
 
@@ -50,8 +50,8 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
         try {
             ExecResult result = execInContainer("ls", "-ltd", "/opt/kafka/config/");
             printExecResult(result, "ls -ltd /opt/kafka/config/: ");
-            result = execInContainer("whoami");
-            printExecResult(result, "whoami");
+            result = execInContainer("id");
+            printExecResult(result, "id");
             result = execInContainer("touch", "/opt/kafka/config/foo");
             printExecResult(result, "touch /opt/kafka/config/foo");
             result = execInContainer("sh", "-c", "[[ -w /opt/kafka/config/ ]] && echo yes");
