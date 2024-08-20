@@ -45,12 +45,20 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
     protected void containerIsStarting(InspectContainerResponse containerInfo) {
         try {
             ExecResult result = execInContainer("ls", "-ltd", "/opt/kafka/config/");
-            System.out.println("ls -ltd /opt/kafka/config/: " + result.getExitCode());
-            System.out.println("ls -ltd /opt/kafka/config/: " + result.getStdout());
-            System.out.println("ls -ltd /opt/kafka/config/: " + result.getStderr());
+            printExecResult(result, "ls -ltd /opt/kafka/config/: ");
+            result = execInContainer("whoami");
+            printExecResult(result, "whoami");
+            result = execInContainer("touch", "/opt/kafka/config/foo");
+            printExecResult(result, "touch /opt/kafka/config/foo");
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
         super.containerIsStarting(containerInfo);
+    }
+
+    private static void printExecResult(ExecResult result, String command) {
+        System.out.println(command + result.getExitCode());
+        System.out.println(command + result.getStdout());
+        System.out.println(command + result.getStderr());
     }
 }
