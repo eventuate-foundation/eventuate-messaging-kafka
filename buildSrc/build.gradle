@@ -5,5 +5,5 @@ repositories {
 }
 
 dependencies {
-    compile 'uk.co.real-logic:sbe-all:1.15.0'
+    implementation 'uk.co.real-logic:sbe-all:1.15.0'
 }

@@ -1,13 +1,20 @@
 
 dependencies {
 
-    compile project (':eventuate-messaging-kafka-common')
-    compile project (':eventuate-messaging-kafka-consumer')
-    compile project (':eventuate-messaging-kafka-producer')
+    api project (':eventuate-messaging-kafka-common')
+    api project (':eventuate-messaging-kafka-consumer')
+    api project (':eventuate-messaging-kafka-producer')
+    api "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
 
-    compile 'junit:junit:4.13.1'
-    compile "org.mockito:mockito-core:4.7.0"
-    compile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
-    compile "org.assertj:assertj-core:3.23.1"
+    implementation  project (":eventuate-messaging-kafka-basic-consumer")
+    implementation "io.eventuate.common.messaging:eventuate-messaging-partition-management:$eventuateCommonMessagingVersion"
+
+    implementation "org.apache.kafka:kafka-clients:$kafkaClientVersion"
+
+    implementation 'junit:junit:4.13.1'
+    implementation "org.mockito:mockito-core:4.7.0"
+    implementation "org.assertj:assertj-core:3.23.1"
+
+
 
 }

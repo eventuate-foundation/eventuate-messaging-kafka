@@ -1,4 +1,5 @@
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import uk.co.real_logic.sbe.SbeTool
 
@@ -13,6 +14,7 @@ class SbeToolTask extends DefaultTask{
         SbeTool.main(args)
     }
 
+    @Internal
     def getGeneratedDir() {
         "${project.buildDir}/generated-sources/sbe"
     }

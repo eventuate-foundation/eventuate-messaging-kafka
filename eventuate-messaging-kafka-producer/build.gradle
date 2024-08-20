@@ -1,4 +1,4 @@
 
 dependencies {
-    compile project (":eventuate-messaging-kafka-common")
+    implementation project (":eventuate-messaging-kafka-common")
 }

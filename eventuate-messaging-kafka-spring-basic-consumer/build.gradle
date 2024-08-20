@@ -1,11 +1,12 @@
 
 dependencies {
-    compile project (':eventuate-messaging-kafka-basic-consumer')
-    compile project (':eventuate-messaging-kafka-spring-common')
-    compile "org.springframework.boot:spring-boot-starter:$springBootVersion"
+    api project (':eventuate-messaging-kafka-basic-consumer')
+    api project (':eventuate-messaging-kafka-spring-common')
+    implementation "org.springframework.boot:spring-boot-starter:$springBootVersion"
 
-    testCompile project (':eventuate-messaging-kafka-spring-producer')
+    testImplementation project (':eventuate-messaging-kafka-spring-producer')
+    testImplementation project (':eventuate-messaging-kafka-common')
 
-    testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
-    testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
+    testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+    testImplementation "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
 }

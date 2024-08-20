@@ -1,6 +1,8 @@
 
 dependencies {
-    compile project (':eventuate-messaging-kafka-common')
+    implementation 'commons-lang:commons-lang:2.6'
+    implementation project (':eventuate-messaging-kafka-common')
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
     testImplementation "org.assertj:assertj-core:$assertjVersion"
 

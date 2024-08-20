@@ -1,9 +1,11 @@
 
 dependencies {
-    compile project (":eventuate-messaging-kafka-basic-consumer")
-    compile "io.eventuate.common.messaging:eventuate-messaging-partition-management:$eventuateCommonMessagingVersion"
+    api project (":eventuate-messaging-kafka-basic-consumer")
+    implementation project (":eventuate-messaging-kafka-common")
+    api "io.eventuate.common.messaging:eventuate-messaging-partition-management:$eventuateCommonMessagingVersion"
+    implementation "org.apache.kafka:kafka-clients:$kafkaClientVersion"
 
-    testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
+    testImplementation "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
     testImplementation "org.assertj:assertj-core:$assertjVersion"
 }
 

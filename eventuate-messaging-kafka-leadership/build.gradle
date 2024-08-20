@@ -3,8 +3,10 @@ dependencies {
     implementation "io.eventuate.common:eventuate-common-coordination-leadership:$eventuateCommonVersion"
     implementation "org.slf4j:slf4j-api:1.7.18"
     implementation project(":eventuate-messaging-kafka-basic-consumer")
+    implementation "org.apache.kafka:kafka-clients:$kafkaClientVersion"
 
     testImplementation project(":eventuate-messaging-kafka-spring-common")
+    testImplementation project (':eventuate-messaging-kafka-common')
 
     testImplementation "io.eventuate.common:eventuate-common-coordination-leadership-tests:$eventuateCommonVersion"
     testImplementation "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
