@@ -7,6 +7,8 @@ import io.eventuate.messaging.kafka.spring.consumer.KafkaConsumerFactoryConfigur
 import io.eventuate.messaging.kafka.spring.consumer.MessageConsumerKafkaConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -22,11 +25,15 @@ import java.util.UUID;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class EventuateKafkaNativeClusterTest {
 
+    private final static Logger logger = LoggerFactory.getLogger(EventuateKafkaNativeClusterTest.class);
+
     private static final EventuateKafkaNativeCluster kafkaCluster =
             new EventuateKafkaNativeCluster("network-" + uuid());
 
     @DynamicPropertySource
     static void registerContainerProperties(DynamicPropertyRegistry registry) {
+        kafkaCluster.kafka.withLogConsumer(new Slf4jLogConsumer(logger).withPrefix("kafka:"));
+
         PropertyProvidingContainer.startAndProvideProperties(registry, kafkaCluster.kafka);
     }
 

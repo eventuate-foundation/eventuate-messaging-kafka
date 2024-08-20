@@ -14,8 +14,12 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
 
     private String firstNetworkAlias;
 
+    private static final String STARTER_SCRIPT = "/tmp/testcontainers_start.sh";
+
     public EventuateKafkaNativeContainer() {
         super("apache/kafka-native");
+        withCommand("sh", "-c", "whoami && while [ ! -f " + STARTER_SCRIPT + " ]; do sleep 0.1; done; " + STARTER_SCRIPT);
+
     }
 
     @Override
@@ -50,6 +54,8 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
             printExecResult(result, "whoami");
             result = execInContainer("touch", "/opt/kafka/config/foo");
             printExecResult(result, "touch /opt/kafka/config/foo");
+            result = execInContainer("sh", "-c", "[[ -w /opt/kafka/config/ ]] && echo yes");
+            printExecResult(result, "sh -c '[[ -w /opt/kafka/config/ ]] && echo yes'");
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
