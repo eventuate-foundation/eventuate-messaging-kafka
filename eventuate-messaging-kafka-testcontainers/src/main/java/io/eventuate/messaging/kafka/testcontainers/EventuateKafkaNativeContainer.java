@@ -47,24 +47,28 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
 
     @Override
     protected void containerIsStarting(InspectContainerResponse containerInfo) {
-        try {
-            ExecResult result = execInContainer("ls", "-ltd", "/opt/kafka/config/");
-            printExecResult(result, "ls -ltd /opt/kafka/config/: ");
-            result = execInContainer("id");
-            printExecResult(result, "id");
-            result = execInContainer("touch", "/opt/kafka/config/foo");
-            printExecResult(result, "touch /opt/kafka/config/foo");
-            result = execInContainer("sh", "-c", "[[ -w /opt/kafka/config/ ]] && echo yes");
-            printExecResult(result, "sh -c '[[ -w /opt/kafka/config/ ]] && echo yes'");
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        execInContainerAndPrint("ls", "-ltd", "/opt/kafka/config/");
+        execInContainerAndPrint("id");
+        execInContainerAndPrint("touch", "/opt/kafka/config/foo");
+
+        String writeableTest = "[[ -w /opt/kafka/config/ ]] && echo yes";
+        execInContainerAndPrint("sh", "-c", writeableTest);
+        execInContainerAndPrint("bash", "-c", writeableTest);
+
         super.containerIsStarting(containerInfo);
     }
 
-    private static void printExecResult(ExecResult result, String command) {
-        System.out.println(command + result.getExitCode());
-        System.out.println(command + result.getStdout());
-        System.out.println(command + result.getStderr());
+    private void execInContainerAndPrint(String... args)  {
+        try {
+            ExecResult result = execInContainer(args);
+            String command = String.join(" ", args) + " : ";
+            System.out.println("======== Command " + command + " -> ");
+            System.out.println("ExitCode=" + result.getExitCode());
+            System.out.println("Stdout=" + result.getStdout());
+            System.out.println("Stderr=" + result.getStderr());
+        } catch (UnsupportedOperationException | InterruptedException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
+
 }
