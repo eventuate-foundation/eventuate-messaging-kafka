@@ -54,8 +54,8 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
             printExecResult(result, "id");
             result = execInContainer("touch", "/opt/kafka/config/foo");
             printExecResult(result, "touch /opt/kafka/config/foo");
-            result = execInContainer("sh", "-c", "[[ -w /opt/kafka/config/ ]] && echo yes");
-            printExecResult(result, "sh -c '[[ -w /opt/kafka/config/ ]] && echo yes'");
+            result = execInContainer("bash", "-c", "[[ -w /opt/kafka/config/ ]] && echo yes");
+            printExecResult(result, "bash -c '[[ -w /opt/kafka/config/ ]] && echo yes'");
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
