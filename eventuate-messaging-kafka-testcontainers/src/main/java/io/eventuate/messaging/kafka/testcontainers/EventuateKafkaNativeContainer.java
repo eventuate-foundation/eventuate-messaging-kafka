@@ -43,7 +43,6 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
 
     @Override
     protected void containerIsStarting(InspectContainerResponse containerInfo) {
-        super.containerIsStarting(containerInfo);
         try {
             ExecResult result = execInContainer("ls", "-ltd", "/opt/kafka/config/");
             System.out.println("ls -ltd /opt/kafka/config/: " + result.getExitCode());
@@ -52,5 +51,6 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+        super.containerIsStarting(containerInfo);
     }
 }
