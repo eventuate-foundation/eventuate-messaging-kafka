@@ -55,6 +55,10 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
         execInContainerAndPrint("sh", "-c", writeableTest);
         execInContainerAndPrint("bash", "-c", writeableTest);
 
+        String writeableTest2 = "test -w /opt/kafka/config/ && echo yes";
+        execInContainerAndPrint("sh", "-c", writeableTest2);
+        execInContainerAndPrint("bash", "-c", writeableTest2);
+
         super.containerIsStarting(containerInfo);
     }
 
