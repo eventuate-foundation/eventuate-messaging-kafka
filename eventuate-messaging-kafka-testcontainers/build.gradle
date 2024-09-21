@@ -1,7 +1,7 @@
 dependencies {
     implementation "io.eventuate.common:eventuate-common-testcontainers:$eventuateCommonVersion"
     implementation "org.testcontainers:testcontainers:$testContainersVersion"
-    implementation "org.testcontainers:kafka:$testContainersVersion"
+    api "org.testcontainers:kafka:$testContainersVersion"
 
     implementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
     implementation "org.assertj:assertj-core:$assertjVersion"

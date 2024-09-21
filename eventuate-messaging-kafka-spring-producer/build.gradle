@@ -1,7 +1,7 @@
 
 dependencies {
     api project (":eventuate-messaging-kafka-producer")
-    implementation project (':eventuate-messaging-kafka-spring-common')
+    api project (':eventuate-messaging-kafka-spring-common')
 
     implementation "org.springframework.boot:spring-boot-starter:$springBootVersion"
 
