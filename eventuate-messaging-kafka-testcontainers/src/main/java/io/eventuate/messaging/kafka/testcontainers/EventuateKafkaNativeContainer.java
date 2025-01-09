@@ -13,7 +13,11 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
     private String firstNetworkAlias;
 
     public EventuateKafkaNativeContainer() {
-        super("apache/kafka-native");
+        super("apache/kafka-native:3.8.0");
+    }
+
+    public EventuateKafkaNativeContainer(String imageName) {
+        super(imageName);
     }
 
     @Override
