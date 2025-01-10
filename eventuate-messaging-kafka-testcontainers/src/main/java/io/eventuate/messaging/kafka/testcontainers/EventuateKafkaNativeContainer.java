@@ -33,8 +33,15 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
         return this;
     }
 
+    @Override
+    public EventuateKafkaNativeContainer withReuse(boolean reusable) {
+        return (EventuateKafkaNativeContainer) super.withReuse(reusable);
+    }
+
     @NotNull
     public String getBootstrapServersForContainer() {
+        if (firstNetworkAlias == null)
+            throw new IllegalStateException("First network alias not set");
         return  firstNetworkAlias + ":9093";
     }
 
