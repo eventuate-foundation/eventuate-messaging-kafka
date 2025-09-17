@@ -66,12 +66,12 @@ public class EventuateKafkaContainer extends EventuateGenericContainer<Eventuate
     @Override
     public void registerProperties(BiConsumer<String, Supplier<Object>> registry) {
         registry.accept("eventuatelocal.kafka.bootstrap.servers",
-                () -> String.format("localhost:%s", getFirstMappedPort()));
+                () -> "localhost:%s".formatted(getFirstMappedPort()));
     }
 
     protected void containerIsStarted(InspectContainerResponse containerInfo) {
         super.containerIsStarted(containerInfo);
-        execute("bin/kafka-configs.sh", "--alter", "--bootstrap-server", "kafka:29092", "--entity-type", "brokers", "--entity-name", "0", "--add-config", String.format("advertised.listeners=[LX://localhost:%s,LC://kafka:29092]", getMappedPort(9092)));
+        execute("bin/kafka-configs.sh", "--alter", "--bootstrap-server", "kafka:29092", "--entity-type", "brokers", "--entity-name", "0", "--add-config", "advertised.listeners=[LX://localhost:%s,LC://kafka:29092]".formatted(getMappedPort(9092)));
     }
 
     private void execute(String... command) {

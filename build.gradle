@@ -35,7 +35,6 @@ subprojects {
     if (!project.name.endsWith("-bom"))
         dependencies {
             implementation "org.slf4j:slf4j-api:$slf4jApiVersion"
-            testImplementation "junit:junit:4.12"
         }
 }
 
@@ -51,4 +50,7 @@ gradle.projectsEvaluated {
 dockerCompose {
     projectName = null
     environment.put "EVENTUATE_COMMON_VERSION", eventuateCommonImageVersion
+}
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
 }

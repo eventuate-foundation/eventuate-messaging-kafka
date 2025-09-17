@@ -1,12 +1,12 @@
 package io.eventuate.messaging.kafka.common.sbe;
 
 import org.agrona.ExpandableArrayBuffer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SbeMessageSerdeTest {
 
@@ -30,10 +30,9 @@ public class SbeMessageSerdeTest {
 
     MultiMessageEncoder.MessagesEncoder messagesEncoder = multiMessageEncoder.messagesCount(keys.length);
 
-    IntStream.range(0, keys.length).forEach(idx -> {
+    IntStream.range(0, keys.length).forEach(idx ->
               messagesEncoder
-                      .next().key(keys[idx]).value(values[idx]);
-            }
+                      .next().key(keys[idx]).value(values[idx])
     );
 
 

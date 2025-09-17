@@ -10,8 +10,7 @@ import io.eventuate.messaging.kafka.basic.consumer.KafkaConsumerFactory;
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
 import io.eventuate.messaging.kafka.spring.common.EventuateKafkaPropertiesConfiguration;
 import io.eventuate.messaging.kafka.testcontainers.EventuateKafkaContainer;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -21,14 +20,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.testcontainers.containers.Network;
 
 import java.util.Collections;
 import java.util.UUID;
 
 @SpringBootTest(classes = KafkaLeadershipTest.Config.class)
-@RunWith(SpringJUnit4ClassRunner.class)
 public class KafkaLeadershipTest extends AbstractLeadershipTest<KafkaLeaderSelector> {
 
   @Configuration
@@ -71,10 +68,10 @@ public class KafkaLeadershipTest extends AbstractLeadershipTest<KafkaLeaderSelec
   private String lockId;
   private int leaderIdx;
 
-  @Before
+  @BeforeEach
   public void init() {
     leaderIdx = 0;
-    lockId = String.format("/zk/lock/test/%s", UUID.randomUUID().toString());
+    lockId = "/zk/lock/test/%s".formatted(UUID.randomUUID().toString());
   }
 
   @Override

@@ -2,9 +2,9 @@ package io.eventuate.messaging.kafka.consumer;
 
 import io.eventuate.messaging.kafka.common.EventuateBinaryMessageEncoding;
 import io.eventuate.util.test.async.Eventually;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,7 +16,7 @@ public class SwimlaneDispatcherTest {
   private AtomicInteger numberOfMessagesReceived;
   private Consumer<RawKafkaMessage> handler;
 
-  @Before
+  @BeforeEach
   public void init() {
     swimlaneDispatcher = new SwimlaneDispatcher("1", 1, Executors.newCachedThreadPool());
     numberOfMessagesReceived = new AtomicInteger(0);
@@ -58,17 +58,17 @@ public class SwimlaneDispatcherTest {
   private void sendMessages(int numberOfMessagesToSend) {
     for (int i = 0; i < numberOfMessagesToSend; i++) {
       if (i > 0) {
-        Assert.assertTrue(swimlaneDispatcher.getRunning());
+        Assertions.assertTrue(swimlaneDispatcher.getRunning());
       }
       swimlaneDispatcher.dispatch(new RawKafkaMessage("", EventuateBinaryMessageEncoding.stringToBytes("")), handler);
     }
   }
 
   private void assertMessageReceived(int numberOfMessagesToSend) {
-    Eventually.eventually(() -> Assert.assertEquals(numberOfMessagesToSend, numberOfMessagesReceived.get()));
+    Eventually.eventually(() -> Assertions.assertEquals(numberOfMessagesToSend, numberOfMessagesReceived.get()));
   }
 
   private void assertDispatcherStopped() {
-    Eventually.eventually(() -> Assert.assertFalse(swimlaneDispatcher.getRunning()));
+    Eventually.eventually(() -> Assertions.assertFalse(swimlaneDispatcher.getRunning()));
   }
 }

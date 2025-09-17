@@ -8,5 +8,8 @@ dependencies {
     testImplementation "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
     testImplementation "org.assertj:assertj-core:$assertjVersion"
 }
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
 
 

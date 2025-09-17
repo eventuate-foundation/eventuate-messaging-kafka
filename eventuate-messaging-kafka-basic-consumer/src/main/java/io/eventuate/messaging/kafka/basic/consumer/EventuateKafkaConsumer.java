@@ -155,7 +155,7 @@ public class EventuateKafkaConsumer {
         for (ConsumerRecord<String, byte[]> record : records) {
           logger.debug("processing record subscriberId={} tpo=({} {} {}) body={}", subscriberId, record.topic(), record.partition(), record.offset(), record.value());
           if (logger.isDebugEnabled())
-            logger.debug(String.format("EventuateKafkaAggregateSubscriptions subscriber = %s, offset = %d, key = %s, value = %s", subscriberId, record.offset(), record.key(), record.value()));
+            logger.debug("EventuateKafkaAggregateSubscriptions subscriber = %s, offset = %d, key = %s, value = %s".formatted(subscriberId, record.offset(), record.key(), record.value()));
           processor.process(record);
         }
       if (!records.isEmpty())

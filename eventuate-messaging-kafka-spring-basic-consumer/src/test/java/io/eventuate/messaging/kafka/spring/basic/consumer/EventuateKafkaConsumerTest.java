@@ -6,11 +6,10 @@ import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
 import io.eventuate.messaging.kafka.spring.producer.EventuateKafkaProducerSpringConfigurationPropertiesConfiguration;
 import io.eventuate.util.test.async.Eventually;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
@@ -35,12 +33,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = EventuateKafkaConsumerTest.Config.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class EventuateKafkaConsumerTest {
@@ -78,7 +73,7 @@ public class EventuateKafkaConsumerTest {
 
   private KafkaConsumerFactory kafkaConsumerFactory = new DefaultKafkaConsumerFactory();
 
-  @Before
+  @BeforeEach
   public void init() {
     eventuateKafkaProducer = new EventuateKafkaProducer(bootstrapServers, eventuateKafkaProducerConfigurationProperties);
 
@@ -87,7 +82,7 @@ public class EventuateKafkaConsumerTest {
     mockedHandler = mock(EventuateKafkaConsumerMessageHandler.class);
   }
 
-  @After
+  @AfterEach
   public void after() throws Exception {
     startKafka();
     waitForKafka();
@@ -196,9 +191,8 @@ public class EventuateKafkaConsumerTest {
 
     sendMessage();
 
-    Eventually.eventually(60, 500, TimeUnit.MILLISECONDS, () -> {
-      verify(onCommitOffsetsFailedCallback).run();
-    });
+    Eventually.eventually(60, 500, TimeUnit.MILLISECONDS, () ->
+      verify(onCommitOffsetsFailedCallback).run());
 
     startKafka();
     waitForKafka();
@@ -225,8 +219,8 @@ public class EventuateKafkaConsumerTest {
       String output = StreamUtils.copyToString(p.getInputStream(), Charset.defaultCharset());
       String errors = StreamUtils.copyToString(p.getErrorStream(), Charset.defaultCharset());
 
-      logger.info(String.format("%s output: %s", command, output));
-      logger.error(String.format("%s errors: %s", command, errors));
+      logger.info("%s output: %s".formatted(command, output));
+      logger.error("%s errors: %s".formatted(command, errors));
 
     } finally {
       p.destroy();
@@ -301,9 +295,9 @@ public class EventuateKafkaConsumerTest {
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
-    assertNotNull("Message not received by timeout", m);
+    assertNotNull(m, "Message not received by timeout");
     String message = EventuateBinaryMessageEncoding.bytesToString(m);
-    Assert.assertEquals(value, message);
+    Assertions.assertEquals(value, message);
   }
 
   private void assertHandlerInvoked() {

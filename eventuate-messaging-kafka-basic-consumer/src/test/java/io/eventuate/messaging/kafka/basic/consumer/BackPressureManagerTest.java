@@ -1,16 +1,15 @@
 package io.eventuate.messaging.kafka.basic.consumer;
 
 import org.apache.kafka.common.TopicPartition;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BackPressureManagerTest {
 
@@ -21,7 +20,7 @@ public class BackPressureManagerTest {
   private TopicPartition thirdTopicPartition;
   private Set<TopicPartition> setOfThirdTopicPartition;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     this.config.setLow(5);
     this.config.setHigh(10);

@@ -22,7 +22,7 @@ public class EventuateKafkaNativeContainer extends KafkaContainer implements Pro
 
     @Override
     protected void configure() {
-        String controllerQuorumVoters = String.format("%s@%s:9094", getEnvMap().get("KAFKA_NODE_ID"), "localhost");
+        String controllerQuorumVoters = "%s@%s:9094".formatted(getEnvMap().get("KAFKA_NODE_ID"), "localhost");
         withEnv("KAFKA_CONTROLLER_QUORUM_VOTERS", controllerQuorumVoters);
     }
 

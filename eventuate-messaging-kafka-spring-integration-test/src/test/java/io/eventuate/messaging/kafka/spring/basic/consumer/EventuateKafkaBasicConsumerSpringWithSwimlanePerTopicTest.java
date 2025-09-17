@@ -7,17 +7,14 @@ import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties
 import io.eventuate.messaging.kafka.consumer.MessageConsumerKafkaImpl;
 import io.eventuate.messaging.kafka.consumer.SwimlanePerTopicPartition;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = EventuateKafkaBasicConsumerSpringWithSwimlanePerTopicTest.Config.class,
         properties = "eventuate.local.kafka.consumer.backPressure.high=3")
 public class EventuateKafkaBasicConsumerSpringWithSwimlanePerTopicTest extends AbstractEventuateKafkaBasicConsumerTest  {

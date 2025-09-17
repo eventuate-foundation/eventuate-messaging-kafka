@@ -1,6 +1,7 @@
 
 dependencies {
-    implementation 'commons-lang:commons-lang:2.6'
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
+    implementation "org.junit.jupiter:junit-jupiter:5.13.4"
     implementation project (':eventuate-messaging-kafka-common')
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
@@ -10,4 +11,5 @@ dependencies {
 
 test {
     forkEvery 1
+    useJUnitPlatform()
 }

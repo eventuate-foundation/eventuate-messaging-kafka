@@ -1,7 +1,7 @@
 package io.eventuate.messaging.kafka.testcontainers;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.lifecycle.Startables;
 
 import java.util.HashMap;
@@ -13,7 +13,7 @@ public class EventuateKafkaClusterTest {
 
     private static EventuateKafkaCluster eventuateKafkaCluster;
 
-    @BeforeClass
+    @BeforeAll
     public static void startCluster() {
         eventuateKafkaCluster = new EventuateKafkaCluster("network-" + System.currentTimeMillis()) {
             @Override

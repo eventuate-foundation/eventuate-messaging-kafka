@@ -11,24 +11,21 @@ import io.eventuate.messaging.kafka.producer.EventuateKafkaProducer;
 import io.eventuate.messaging.kafka.producer.EventuateKafkaProducerConfigurationProperties;
 import io.eventuate.messaging.kafka.spring.producer.EventuateKafkaProducerSpringConfigurationPropertiesConfiguration;
 import io.eventuate.util.test.async.Eventually;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = EventuateKafkaBasicConsumerSpringTest.EventuateKafkaConsumerTestConfiguration.class,
         properties = "eventuate.local.kafka.consumer.backPressure.high=3")
 public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafkaBasicConsumerTest {
@@ -145,9 +142,8 @@ public class EventuateKafkaBasicConsumerSpringTest extends AbstractEventuateKafk
 
     KafkaSubscription subscription = getConsumer().subscribe(subscriberId, Collections.singleton(topic), handler);
 
-    Eventually.eventually(() -> {
-      assertEquals(2, messages.size());
-    });
+    Eventually.eventually(() ->
+      assertEquals(2, messages.size()));
 
     subscription.close();
 

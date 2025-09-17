@@ -4,8 +4,8 @@ import io.eventuate.messaging.kafka.common.sbe.MessageHeaderEncoder;
 import io.eventuate.messaging.kafka.common.sbe.MultiMessageEncoder;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class EventuateKafkaMultiMessageConverterTest {
 
@@ -54,14 +56,14 @@ public class EventuateKafkaMultiMessageConverterTest {
   }
 
   private void assertEstimatedGreaterOrEqualToActual() {
-    Assert.assertThat(estimatedSize, Matchers.greaterThanOrEqualTo(serializedMessages.length));
+    assertThat(estimatedSize, Matchers.greaterThanOrEqualTo(serializedMessages.length));
   }
 
   @Test
   public void testMessageBuilder3ByteCharacterMessages() throws UnsupportedEncodingException {
 
-    Assert.assertThat(THREE_BYTE_CHARACTER_MESSAGES_0.getKey().getBytes(StandardCharsets.UTF_8).length, Matchers.greaterThan(THREE_BYTE_CHARACTER_MESSAGES_0.getKey().length() * 2));
-    Assert.assertThat(THREE_BYTE_CHARACTER_MESSAGES_0.getValue().getBytes(StandardCharsets.UTF_8).length, Matchers.greaterThan(THREE_BYTE_CHARACTER_MESSAGES_0.getValue().length() * 2));
+    assertThat(THREE_BYTE_CHARACTER_MESSAGES_0.getKey().getBytes(StandardCharsets.UTF_8).length, Matchers.greaterThan(THREE_BYTE_CHARACTER_MESSAGES_0.getKey().length() * 2));
+    assertThat(THREE_BYTE_CHARACTER_MESSAGES_0.getValue().getBytes(StandardCharsets.UTF_8).length, Matchers.greaterThan(THREE_BYTE_CHARACTER_MESSAGES_0.getValue().length() * 2));
     testMessageBuilder(new EventuateKafkaMultiMessages(THREE_BYTE_CHARACTER_MESSAGES));
     assertEstimatedGreaterOrEqualToActual();
   }
@@ -89,8 +91,8 @@ public class EventuateKafkaMultiMessageConverterTest {
     EventuateKafkaMultiMessageConverter.MessageBuilder messageBuilder =
             new EventuateKafkaMultiMessageConverter.MessageBuilder(sizeOfHeaderAndFirstMessage);
 
-    Assert.assertTrue(messageBuilder.addMessage(SIMPLE_MESSAGES.get(0)));
-    Assert.assertFalse(messageBuilder.addMessage(SIMPLE_MESSAGES.get(1)));
+    Assertions.assertTrue(messageBuilder.addMessage(SIMPLE_MESSAGES.get(0)));
+    Assertions.assertFalse(messageBuilder.addMessage(SIMPLE_MESSAGES.get(1)));
   }
 
   @Test
@@ -102,7 +104,7 @@ public class EventuateKafkaMultiMessageConverterTest {
     EventuateKafkaMultiMessageConverter.MessageBuilder messageBuilder =
             new EventuateKafkaMultiMessageConverter.MessageBuilder(sizeOfFirstMessage);
 
-    Assert.assertFalse(messageBuilder.addMessage(SIMPLE_MESSAGES.get(0)));
+    Assertions.assertFalse(messageBuilder.addMessage(SIMPLE_MESSAGES.get(0)));
   }
 
   @Test
@@ -128,8 +130,8 @@ public class EventuateKafkaMultiMessageConverterTest {
     EventuateKafkaMultiMessageConverter.MessageBuilder messageBuilder = new EventuateKafkaMultiMessageConverter.MessageBuilder(1000000);
     EventuateKafkaMultiMessageConverter eventuateMultiMessageConverter = new EventuateKafkaMultiMessageConverter();
 
-    Assert.assertTrue(messageBuilder.setHeaders(original.getHeaders()));
-    Assert.assertTrue(original.getMessages().stream().allMatch(messageBuilder::addMessage));
+    Assertions.assertTrue(messageBuilder.setHeaders(original.getHeaders()));
+    Assertions.assertTrue(original.getMessages().stream().allMatch(messageBuilder::addMessage));
 
     serializedMessages = messageBuilder.toBinaryArray();
     estimatedSize = EventuateKafkaMultiMessageConverter.HEADER_SIZE + original.estimateSize();
@@ -138,7 +140,7 @@ public class EventuateKafkaMultiMessageConverterTest {
 
     EventuateKafkaMultiMessages deserializedMessages = eventuateMultiMessageConverter.convertBytesToMessages(serializedMessages);
 
-    Assert.assertEquals(result, deserializedMessages);
+    Assertions.assertEquals(result, deserializedMessages);
   }
 
   public void testMessageConverter(EventuateKafkaMultiMessages messages) {
@@ -152,6 +154,6 @@ public class EventuateKafkaMultiMessageConverterTest {
 
     EventuateKafkaMultiMessages deserializedMessages = eventuateMultiMessageConverter.convertBytesToMessages(serializedMessages);
 
-    Assert.assertEquals(result, deserializedMessages);
+    Assertions.assertEquals(result, deserializedMessages);
   }
 }

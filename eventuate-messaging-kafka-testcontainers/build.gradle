@@ -17,3 +17,6 @@ task writeProperties(type: WriteProperties) {
 
 
 processResources.from(writeProperties)
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}

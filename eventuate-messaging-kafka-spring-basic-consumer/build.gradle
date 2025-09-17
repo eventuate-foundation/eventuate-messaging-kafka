@@ -10,3 +10,6 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
     testImplementation "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
 }
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
