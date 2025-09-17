@@ -8,6 +8,7 @@ dependencies {
 
     implementation  project (":eventuate-messaging-kafka-basic-consumer")
     implementation "io.eventuate.common.messaging:eventuate-messaging-partition-management:$eventuateCommonMessagingVersion"
+    implementation "org.junit.jupiter:junit-jupiter:$junitVersion"
 
     implementation "org.apache.kafka:kafka-clients:$kafkaClientVersion"
     implementation "org.mockito:mockito-core:4.11.0"
