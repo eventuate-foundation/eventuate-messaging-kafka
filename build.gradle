@@ -28,13 +28,12 @@ subprojects {
 
     repositories {
         mavenCentral()
-        maven { url "https://repo.spring.io/milestone" }
         eventuateMavenRepoUrl.split(',').each { repoUrl -> maven { url repoUrl } }
     }
 
     if (!project.name.endsWith("-bom"))
         dependencies {
-            implementation "org.slf4j:slf4j-api:$slf4jApiVersion"
+            implementation "org.slf4j:slf4j-api:$slf4jVersion"
             testImplementation "org.assertj:assertj-core:$assertjVersion"
             testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
             testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junitPlatformLauncherVersion"

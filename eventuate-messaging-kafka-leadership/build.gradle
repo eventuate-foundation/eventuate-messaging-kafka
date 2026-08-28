@@ -1,7 +1,7 @@
 
 dependencies {
     implementation "io.eventuate.common:eventuate-common-coordination-leadership:$eventuateCommonVersion"
-    implementation "org.slf4j:slf4j-api:1.7.18"
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation project(":eventuate-messaging-kafka-basic-consumer")
     implementation "org.apache.kafka:kafka-clients:$kafkaClientVersion"
 
