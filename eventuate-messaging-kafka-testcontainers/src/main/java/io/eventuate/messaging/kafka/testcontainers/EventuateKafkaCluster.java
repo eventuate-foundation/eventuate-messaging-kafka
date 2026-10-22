@@ -1,7 +1,7 @@
 package io.eventuate.messaging.kafka.testcontainers;
 
-import io.eventuate.common.testcontainers.EventuateZookeeperContainer;
 import io.eventuate.common.testcontainers.ReusableNetworkFactory;
+import io.eventuate.common.zookeeper.testcontainers.EventuateZookeeperContainer;
 import org.testcontainers.containers.Network;
 
 import java.util.function.BiConsumer;

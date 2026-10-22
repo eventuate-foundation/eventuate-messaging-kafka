@@ -1,6 +1,6 @@
 
 dependencies {
-    implementation "io.eventuate.common:eventuate-common-coordination-leadership:$eventuateCommonVersion"
+    implementation "io.eventuate.common.coordination.leadership:eventuate-common-coordination-leadership:$eventuateCommonCoordinationLeadershipVersion"
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation project(":eventuate-messaging-kafka-basic-consumer")
     implementation "org.apache.kafka:kafka-clients:$kafkaClientVersion"
@@ -8,13 +8,14 @@ dependencies {
     testImplementation project(":eventuate-messaging-kafka-spring-common")
     testImplementation project (':eventuate-messaging-kafka-common')
 
-    testImplementation "io.eventuate.common:eventuate-common-coordination-leadership-tests:$eventuateCommonVersion"
+    testImplementation "io.eventuate.common.coordination.leadership:eventuate-common-coordination-leadership-tests:$eventuateCommonCoordinationLeadershipVersion"
     testImplementation "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
 
-    testImplementation "io.eventuate.common:eventuate-common-testcontainers:$eventuateCommonVersion"
+    testImplementation "io.eventuate.common.testcontainers:eventuate-common-testcontainers:$eventuateCommonTestcontainersVersion"
     testImplementation project(":eventuate-messaging-kafka-testcontainers")
     testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
+    testImplementation "io.eventuate.common.zookeeper:eventuate-common-zookeeper-testcontainers:$eventuateCommonZookeeperVersion"
 }
 
 test {

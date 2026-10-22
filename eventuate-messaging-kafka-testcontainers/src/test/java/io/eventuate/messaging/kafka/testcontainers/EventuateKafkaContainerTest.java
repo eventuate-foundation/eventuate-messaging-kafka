@@ -1,7 +1,7 @@
 package io.eventuate.messaging.kafka.testcontainers;
 
-import io.eventuate.common.testcontainers.EventuateZookeeperContainer;
 import io.eventuate.common.testcontainers.PropertyProvidingContainer;
+import io.eventuate.common.zookeeper.testcontainers.EventuateZookeeperContainer;
 import io.eventuate.messaging.kafka.consumer.KafkaSubscription;
 import io.eventuate.messaging.kafka.consumer.MessageConsumerKafkaImpl;
 import io.eventuate.messaging.kafka.spring.consumer.KafkaConsumerFactoryConfiguration;

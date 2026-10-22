@@ -1,6 +1,6 @@
 package io.eventuate.coordination.leadership.zookeeper;
 
-import io.eventuate.coordination.leadership.LeadershipController;
+import io.eventuate.common.coordination.leadership.LeadershipController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

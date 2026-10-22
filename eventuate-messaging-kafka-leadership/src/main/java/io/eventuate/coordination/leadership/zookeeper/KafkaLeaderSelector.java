@@ -1,7 +1,7 @@
 package io.eventuate.coordination.leadership.zookeeper;
 
-import io.eventuate.coordination.leadership.EventuateLeaderSelector;
-import io.eventuate.coordination.leadership.LeaderSelectedCallback;
+import io.eventuate.common.coordination.leadership.EventuateLeaderSelector;
+import io.eventuate.common.coordination.leadership.LeaderSelectedCallback;
 import io.eventuate.messaging.kafka.basic.consumer.ConsumerPropertiesFactory;
 import io.eventuate.messaging.kafka.basic.consumer.KafkaConsumerFactory;
 import io.eventuate.messaging.kafka.basic.consumer.KafkaMessageConsumer;

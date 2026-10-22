@@ -1,10 +1,10 @@
 package io.eventuate.coordination.leadership.zookeeper;
 
-import io.eventuate.common.testcontainers.EventuateZookeeperContainer;
 import io.eventuate.common.testcontainers.PropertyProvidingContainer;
 import io.eventuate.common.testcontainers.ReusableNetworkFactory;
-import io.eventuate.coordination.leadership.LeaderSelectedCallback;
-import io.eventuate.coordination.leadership.tests.AbstractLeadershipTest;
+import io.eventuate.common.zookeeper.testcontainers.EventuateZookeeperContainer;
+import io.eventuate.common.coordination.leadership.LeaderSelectedCallback;
+import io.eventuate.common.coordination.leadership.tests.AbstractLeadershipTest;
 import io.eventuate.messaging.kafka.basic.consumer.DefaultKafkaConsumerFactory;
 import io.eventuate.messaging.kafka.basic.consumer.KafkaConsumerFactory;
 import io.eventuate.messaging.kafka.common.EventuateKafkaConfigurationProperties;
