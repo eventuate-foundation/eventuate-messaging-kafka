@@ -30,9 +30,21 @@ public class EventuateKafkaContainer extends EventuateGenericContainer<Eventuate
         withConfiguration();
     }
 
+    public static final String IMAGE_PROPERTY = "eventuate.messaging.kafka.image";
+
     @NotNull
     public static EventuateKafkaContainer makeFromDockerfile(String zookeeperConnect) {
         return new EventuateKafkaContainer(FileSystems.getDefault().getPath("../kafka/Dockerfile"), zookeeperConnect);
+    }
+
+    // Uses the image named by the eventuate.messaging.kafka.image system property, which CI sets to the image it built.
+    // Without it, builds ../kafka/Dockerfile.
+    @NotNull
+    public static EventuateKafkaContainer makeFromImageOrDockerfile(String zookeeperConnect) {
+        String image = System.getProperty(IMAGE_PROPERTY);
+        return image == null || image.isBlank()
+                ? makeFromDockerfile(zookeeperConnect)
+                : new EventuateKafkaContainer(image, zookeeperConnect);
     }
 
     @Override

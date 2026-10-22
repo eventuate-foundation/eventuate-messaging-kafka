@@ -28,7 +28,7 @@ public class EventuateKafkaContainerTest {
             .withNetworkAliases("zookeeper");
 
     public static EventuateKafkaContainer kafka =
-            EventuateKafkaContainer.makeFromDockerfile(zookeeper.getConnectionString())
+            EventuateKafkaContainer.makeFromImageOrDockerfile(zookeeper.getConnectionString())
                     .withNetwork(network)
                     .withNetworkAliases("kafka")
                     .withReuse(true);

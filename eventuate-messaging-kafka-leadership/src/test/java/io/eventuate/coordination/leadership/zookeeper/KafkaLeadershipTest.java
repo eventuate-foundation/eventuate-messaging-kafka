@@ -55,7 +55,7 @@ public class KafkaLeadershipTest extends AbstractLeadershipTest<KafkaLeaderSelec
           .withNetworkAliases("zookeeper");
 
   public static EventuateKafkaContainer kafka =
-          new EventuateKafkaContainer("eventuateio/eventuate-kafka:0.19.0.BUILD-SNAPSHOT", zookeeper.getConnectionString())
+          EventuateKafkaContainer.makeFromImageOrDockerfile(zookeeper.getConnectionString())
                   .withNetwork(network)
                   .withNetworkAliases("kafka")
                   .withReuse(true);

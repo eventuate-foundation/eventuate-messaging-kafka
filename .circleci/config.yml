@@ -50,28 +50,46 @@ orbs:
               path: ~/junit
           - store_artifacts:
               path: ~/container-logs
+  native-image:
+    jobs:
+      build:
+        parameters:
+          script:
+            description: the script to execute
+            type: string
+          resource_class:
+            description: the resource class, which determines the platform
+            type: string
+        machine:
+          image: ubuntu-2404:2024.11.1
+        resource_class: <<parameters.resource_class>>
+        working_directory: ~/eventuate-messaging-kafka
+        steps:
+          - checkout
+          - run:
+              name: docker build
+              command: |
+                . set-multi-arch-image-env-vars.sh
+                echo ${DOCKER_PASSWORD?} | docker login -u ${DOCKER_USER_ID?} --password-stdin
+                <<parameters.script>>
+      merge:
+        parameters:
+          script:
+            description: the script to execute
+            type: string
+        docker:
+          - image: cimg/base:stable
+        working_directory: ~/eventuate-messaging-kafka
+        steps:
+          - checkout
+          - setup_remote_docker
+          - run:
+              name: docker buildx imagetools create
+              command: |
+                . set-multi-arch-image-env-vars.sh
+                echo ${DOCKER_PASSWORD?} | docker login -u ${DOCKER_USER_ID?} --password-stdin
+                <<parameters.script>>
 jobs:
-  build-multi-arch-images:
-    docker:
-      - image: cimg/base:stable
-    working_directory: ~/eventuate-common
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: docker buildx build
-          command: |
-            . set-multi-arch-image-env-vars.sh
-            docker context create tls-env
-            docker buildx create tls-env --use
-
-            # failed to solve: process "/dev/.buildkit_qemu_emulator
-            # https://github.com/docker/buildx/issues/493#issuecomment-754834977
-            # https://github.com/tonistiigi/binfmt#installing-emulators
-
-            docker run --privileged --rm tonistiigi/binfmt:qemu-v6.2.0 --install arm64,arm
-
-            ./build-multi-arch-images.sh
   deploy-multi-arch:
     docker:
       - image: cimg/base:stable
@@ -86,40 +104,33 @@ workflows:
   version: 2
   build-test-and-deploy:
     jobs:
-      - build-and-test/build-and-test:
-          name: build-and-test-intel
-          skip_multi_arch_env_vars: "true"
-          script: |
-            docker context create tls-env
-            docker buildx create tls-env --use
-            docker run --privileged --rm tonistiigi/binfmt:qemu-v6.2.0 --install arm64,arm
-            export DOCKER_HOST_NAME=$(hostname)
-            ./build-and-test-all-locally.sh
-      - build-and-test/build-and-test:
-          name: build-and-test-arm
+      - native-image/build:
+          name: build-native-image-kafka-intel
+          script: ./build-docker-image-native.sh $KAFKA_MULTI_ARCH_IMAGE kafka/Dockerfile kafka
+          resource_class: medium
+          context:
+            - publish
+      - native-image/build:
+          name: build-native-image-kafka-arm
+          script: ./build-docker-image-native.sh $KAFKA_MULTI_ARCH_IMAGE kafka/Dockerfile kafka
           resource_class: arm.medium
-          skip_multi_arch_env_vars: "true"
-          script: |
-            docker context create tls-env
-            docker buildx create tls-env --use
-            docker run --privileged --rm tonistiigi/binfmt:qemu-v6.2.0 --install amd64
-            hostname -I
-            export DOCKER_HOST_NAME=$(hostname -I | sed -e 's/ .*//g')
-            echo $DOCKER_HOST_NAME
-            ./build-and-test-all-locally.sh
-      - build-multi-arch-images:
+          context:
+            - publish
+      - native-image/merge:
+          name: build-multi-arch-images
+          script: ./merge-docker-image-multi-arch.sh $KAFKA_MULTI_ARCH_IMAGE
           context:
             - publish
           requires:
-            - build-and-test-intel
-            - build-and-test-arm
+            - build-native-image-kafka-intel
+            - build-native-image-kafka-arm
       - build-and-test/build-and-test:
-          name: test-multi-arch-intel
+          name: build-and-test-intel
           script: ./build-and-test-all.sh
           requires:
             - build-multi-arch-images
       - build-and-test/build-and-test:
-          name: test-multi-arch-arm
+          name: build-and-test-arm
           script: ./build-and-test-all.sh
           resource_class: arm.medium
           requires:
@@ -128,13 +139,13 @@ workflows:
           context:
             - publish
           requires:
-            - test-multi-arch-intel
-            - test-multi-arch-arm
+            - build-and-test-intel
+            - build-and-test-arm
       - build-and-test/build-and-test:
           name: deploy-artifacts
           script: ./deploy-artifacts.sh
           context:
             - publish
           requires:
-            - test-multi-arch-intel
-            - test-multi-arch-arm
+            - build-and-test-intel
+            - build-and-test-arm

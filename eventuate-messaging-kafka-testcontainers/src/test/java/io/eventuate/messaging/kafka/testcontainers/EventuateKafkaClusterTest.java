@@ -18,7 +18,7 @@ public class EventuateKafkaClusterTest {
         eventuateKafkaCluster = new EventuateKafkaCluster("network-" + System.currentTimeMillis()) {
             @Override
             protected EventuateKafkaContainer makeEventuateKafkaContainer() {
-                return EventuateKafkaContainer.makeFromDockerfile(zookeeper.getConnectionString());
+                return EventuateKafkaContainer.makeFromImageOrDockerfile(zookeeper.getConnectionString());
             }
         }.withReuse(false);
 

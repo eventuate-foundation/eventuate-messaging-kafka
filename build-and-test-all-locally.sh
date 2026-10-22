@@ -2,6 +2,6 @@
 
 ./gradlew testClasses
 
-./kafka/build-docker-kafka-multi-arch.sh
+docker build -t eventuate-kafka:local-build kafka
 
 ./build-and-test-all.sh

@@ -38,6 +38,13 @@ subprojects {
             testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
             testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junitPlatformLauncherVersion"
         }
+
+    // Tests use the Kafka image that CI built, instead of building kafka/Dockerfile
+    tasks.withType(Test).configureEach {
+        def kafkaImage = System.getenv("KAFKA_MULTI_ARCH_IMAGE")
+        if (kafkaImage)
+            systemProperty "eventuate.messaging.kafka.image", kafkaImage
+    }
 }
 
 gradle.projectsEvaluated {
